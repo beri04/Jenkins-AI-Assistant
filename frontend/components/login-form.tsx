@@ -9,7 +9,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 export function LoginForm() {
-  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -26,7 +26,7 @@ export function LoginForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username,
+          email,
           password,
         }),
       })
@@ -75,15 +75,15 @@ export function LoginForm() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="username" className="text-sm font-medium text-foreground">
+            <Label htmlFor="email" className="text-sm font-medium text-foreground">
               Username
             </Label>
             <Input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="your-username"
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
               required
               className="bg-background/60 border-border/50 text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
             />

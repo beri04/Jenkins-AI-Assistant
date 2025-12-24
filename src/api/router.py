@@ -1,6 +1,6 @@
 import os
 import uuid
-from fastapi import APIRouter, File, UploadFile, Depends, HTTPException
+from fastapi import APIRouter, File, UploadFile, Depends, HTTPException, Request
 from src.api.models.chat_request import ChatRequest
 from src.api.models.mode_request import ModeRequest 
 from src.rag.rag_engine import RAG_ENGINE
@@ -136,10 +136,7 @@ def chat_with_ai(session_id: str, body: ChatMessage, current_user = Depends(get_
     # raise ValueError("Testing error.log")
 
     return {
-        "session_id": session_id,
-        "answer": answer,
-        "mode": session_mode,
-        "user": current_user["username"]
+        "content": answer,
     }
     
 
@@ -224,24 +221,24 @@ def list_sessions(current_user = Depends(get_current_user)):
     return session_list
 
 
-@router.post("/set-mode")
-def set_mode(request: ModeRequest, current_user = Depends(get_current_user)):
+@router.post("/sessions/{session_id}/set-mode")
+def set_mode(session_id:str, body: ModeRequest,request:Request, current_user = Depends(get_current_user)):
     # modes[request.session_id] = request.mode
     # return {"status": "mode updated", "mode": request.mode}
-
+    request.state.session_id = session_id
     conn = get_db_conn()
     cur = conn.cursor()
 
     cur.execute("""
         update sessions set mode = %s where id = %s and user_id = %s
         """,
-    (request.mode,request.session_id,current_user["id"]))
+    (body.mode, session_id, current_user["id"]))
 
     conn.commit()
     conn.close()
 
     return{
-        "mode":request.mode,
+        "mode":body.mode,
         "message":"Mode Updated"
     }
 

@@ -18,7 +18,22 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [showLoginModal, setShowLoginModal] = useState(true)
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    const sessionId = localStorage.getItem("session_id")
+
+    if (!token || !sessionId) {
+      window.location.href = "/login"
+    }
+  }, [])
+
+  const [mode, setMode] = useState("professional")
+
+useEffect(() => {
+  const savedMode = localStorage.getItem("mode") 
+  if (savedMode) setMode(savedMode)
+}, [])
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -57,7 +72,7 @@ export function ChatInterface() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            message: userMessage.content,
+            content: userMessage.content,
           }),
         }
       )
@@ -91,45 +106,50 @@ export function ChatInterface() {
 
   return (
     <div className="flex h-screen flex-col bg-background">
-      {showLoginModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-2xl">
-            <button
-              onClick={() => setShowLoginModal(false)}
-              className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <h2 className="text-2xl font-semibold text-foreground">Login to Jenkins AI</h2>
-                <p className="text-sm text-muted-foreground">
-                  Sign in to save your chat history and access advanced features
-                </p>
-              </div>
-
-              <div className="space-y-3 pt-2">
-                <Link href="/login" className="block">
-                  <Button className="w-full bg-primary hover:bg-green-700 hover:text-white text-primary-foreground">
-                    Login
-                  </Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  className="w-full border-border hover:bg-accent bg-transparent"
-                  onClick={() => setShowLoginModal(false)}
-                >
-                  Continue without login
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="flex-1 overflow-y-auto">
+
         <div className="mx-auto max-w-3xl px-4 py-8">
+          <div className="mb-4 flex justify-end items-center gap-2">
+            <span className="text-xs text-muted-foreground">Mode</span>
+            <select
+              value={mode}
+              onChange={async (e) => {
+                const newMode = e.target.value
+                setMode(newMode)
+                localStorage.setItem("mode", newMode)
+
+                const sessionId = localStorage.getItem("session_id")
+                const token = localStorage.getItem("token")
+
+                if (!sessionId || !token) {
+                  console.error("Missing session or token")
+                  return
+                }
+                await fetch(
+                  `http://localhost:8000/ai/sessions/${sessionId}/set-mode`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify
+                    ({ 
+                      mode: newMode
+                     }),
+                  }
+                )
+              }}
+              className="rounded border px-2 py-1 text-sm bg-card"
+            >
+
+              <option value="professional">Professional</option>
+              <option value="friendly">Friendly</option>
+              <option value="teaching">Teaching</option>
+              <option value="rude">Rude DevOps</option>
+            </select>
+          </div>
+
           {messages.length === 0 ? (
             <div className="flex h-full items-center justify-center text-center">
               <div className="space-y-3">

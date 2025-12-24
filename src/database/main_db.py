@@ -60,10 +60,12 @@ async def log_requests(request: Request, call_next):
 
     duration = (time.time() - start_time) * 1000
 
+    session_id = getattr(request.state, "session_id", None)
+
     user_id = getattr(request.state, "user_id", None)
 
     logging.info(
-        f"METHOD={request.method} PATH={request.url.path} USER={user_id} DURATION={duration:.2f}ms"
+        f"METHOD={request.method} PATH={request.url.path} USER={user_id} SESSION = {session_id}DURATION={duration:.2f}ms"
     )
 
     return response

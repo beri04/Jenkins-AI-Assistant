@@ -10,20 +10,38 @@ import Link from "next/link"
 
 export function SignupForm() {
   const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault()
+      setIsLoading(true)
 
-    // Add your registration logic here
-    console.log("Signup attempt:", { username })
+      try {
+        const res = await fetch("http://localhost:8000/auth/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            username,
+            password,
+          }),
+        })
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsLoading(false)
-  }
+        if (!res.ok) {
+          throw new Error("Signup failed")
+        }
+
+        alert("Signup successful. Please login.")
+      } catch (err) {
+        alert("Signup failed. User may already exist.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
   return (
     <div className="relative z-10 w-full max-w-md">
@@ -42,7 +60,22 @@ export function SignupForm() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="your-username"
+              placeholder="your-name"
+              required
+              className="bg-background/60 border-border/50 text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-sm font-medium text-foreground">
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="text"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
               required
               className="bg-background/60 border-border/50 text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
             />

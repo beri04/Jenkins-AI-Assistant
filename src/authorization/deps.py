@@ -3,7 +3,7 @@ from jose import jwt, JWTError
 import logging
 from src.database.get_db import get_db_conn
 from src.database.db_logging import execute_query
-from src.database.login import SECRET_KEY, ALGORITHM
+from src.database.access_tokens import SECRET_KEY, ALGORITHM
 
 def get_current_user(request: Request,Authorization: str = Header(None)):
     """
@@ -49,7 +49,7 @@ def get_current_user(request: Request,Authorization: str = Header(None)):
 
     execute_query(
         cur,
-        "SELECT id, username FROM users WHERE id = %s",
+        "SELECT id, email, username FROM users WHERE id = %s",
         (user_id,)
     )
     user = cur.fetchone()
@@ -62,5 +62,6 @@ def get_current_user(request: Request,Authorization: str = Header(None)):
 
     return {
         "id": user[0],
-        "username": user[1]
+        "email": user[1],
+        "username":user[2]
     }

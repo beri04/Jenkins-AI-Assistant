@@ -1,0 +1,11 @@
+title: Performing a Plugin Release
+layout: developer
+references:
+- url: ../releasing-cd
+  title: Through GitHub
+- url: ../releasing-manually
+  title: Manually on your machine
+
+
+Historically Jenkins plugins were released on developer machines.
+We now recommend plugins be released via GitHub, either automatically or with a manual trigger.

@@ -1,0 +1,3 @@
+In a local copy of your  of the plugin repository create a  for your work with the command:
+
+git checkout -b {task-identifier} master

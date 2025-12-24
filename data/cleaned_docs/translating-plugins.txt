@@ -1,0 +1,28 @@
+title: Translating plugins through Crowdin
+layout: developersection
+
+
+Watch the recording of the , where we introduced Crowdin, setup projects and showed how to proofread content.
+
+video::40H0bqGRiL4[youtube,width=800,height=450]
+
+On , select the project and language you want to help to translate.
+
+This is the view that comes up, when you are translating plugins. Let's break down how to use it and what the different parts do.
+
+image::/images/developer/crowdin/source-string-list.png
+
+On the left side, you can see a list of strings in the file selected. The strings with a red square are still up to translate.
+
+Strings with a green box have already been translated. You can vote on it, if you agree with the proposal, or comment a different translation.
+
+Strings with a green tick have been translated and gone through the proofreading process and have been accepted by a project maintainer.
+
+The box right to the string overview is where you can propose translations.
+
+The "Source String" reflects the string you are proposing a translation for.
+Right below, "Enter translation here", is where you can suggest a translation for it. Crowdin learns from the Jenkins terminology, the more projects are using it. If the "TM and MT Suggestions" are appropriate, you can click on one you want to choose and modify it, if required, before hitting the "SAVE" button.
+
+Once you saved a suggestion, the red box turns green and the string is up for proofreading by a project maintainer. Now you can move on to the next string.
+
+On the right side, translators, proofreaders and project maintainers can leave comments about translation proposals, in case something is unclear.

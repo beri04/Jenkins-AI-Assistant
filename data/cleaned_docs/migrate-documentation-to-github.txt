@@ -1,0 +1,20 @@
+layout: developersection
+title: Migrate docs to GitHub
+
+
+Jenkins plugin documentation was originally maintained on a wiki.
+The wiki was deprecated in 2019 due to spam and was shut down in 2021.
+Plugin documentation is migrating to GitHub.
+Instructions are available on the  site.
+
+// Create the branch
+
+Follow the .
+
+Additional information is available from:
+
+*  for plugin docs as markdown
+*  for entire wiki site as HTML
+*
+
+// Create a pull request

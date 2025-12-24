@@ -1,0 +1,56 @@
+layout: section
+title: Change System Time Zone
+
+
+ifdef::env-github[:imagesdir: ../resources]
+ifndef::env-github[:imagesdir: ../../resources]
+
+The system time zone configuration is the default time zone displayed by Jenkins.
+The "Manage Jenkins" => "System Information" page shows the value of the system properties that define the time zone for the Jenkins controller.
+
+Refer to the following video for tips on changing the time zone
+
+.Changing the time zone in Jenkins
+video::4UmY4dDAlo0[youtube,width=800,height=420]
+
+A user defined time zone for the account can be set from the *Account* option in the user settings.
+
+{empty}
+
+It is automatically set to the system default, but can be changed to match any country or time zone as desired.
+
+{empty}
+
+If you cannot change the time zone of your server, you can force jelly to use a given time zone for formatting time stamps.
+
+You need to start your Jenkins with the following java system property:
+
+java -Dorg.apache.commons.jelly.tags.fmt.timeZone=TZ ...
+
+where TZ is a java.util.TimeZone ID ("Europe/Paris" for example).
+
+_Note that `+user.timezone=Europe/Paris+` will work as well, but it can interfere with other contexts._
+
+If running Jenkins via a Linux package, this can be accomplished
+by running `systemctl edit jenkins` and adding the following:
+
+[Service]
+Environment="JAVA_OPTS=-Dorg.apache.commons.jelly.tags.fmt.timeZone=America/New_York"
+
+or, if that doesn't work:
+
+[Service]
+Environment="JAVA_OPTS=-Duser.timezone=America/New_York"
+
+On FreeBSD, the file to edit is /etc/rc.conf, and the option to use is:
+
+jenkins_java_opts="-Dorg.apache.commons.jelly.tags.fmt.timeZone=America/Denver"
+
+On windows, edit `%INSTALL_PATH%/jenkins/jenkins.xml`. Put `-Dargs` before `-jar`:
+
+<arguments>-Duser.timezone="Europe/Minsk" -jar "%BASE%\jenkins.war"</arguments>
+
+You can also set it from the  on a live system without the need for a restart.
+This can also be included in a  to make it permanent.
+
+System.setProperty('org.apache.commons.jelly.tags.fmt.timeZone', 'America/New_York')

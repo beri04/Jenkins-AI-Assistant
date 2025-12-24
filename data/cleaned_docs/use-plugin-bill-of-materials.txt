@@ -1,0 +1,35 @@
+layout: developersection
+title: Use plugin bill of materials
+
+
+.Simplify dependency management with the plugin bill of materials
+
+video::pk1gweLvcEI[youtube,width=800,height=420,start=1749]
+
+Updating the versions of plugin dependencies manually can be exhausting, looking for the correct set of versions that work with each other and do not cause upper-bounds dependency error reports.
+The  simplifies that by shifting the evaluation of versions from each plugin author to a centralized process maintained by members of the Jenkins community.
+
+// Create the branch
+
+Add a `dependencyManagement` section to the `dependencies` section of the pom file that references the  of the plugin bill of materials for that line.
+For example, the addition might look like:
+
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>io.jenkins.tools.bom</groupId>
+      <artifactId>bom-2.504.x</artifactId>
+      <version>5701.va_b_018a_a_6b_0d3</version>
+      <scope>import</scope>
+      <type>pom</type>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
+
+Remove as many `<version>` declarations from the pom file as you can while still compiling successfully.
+
+// Compile the plugin
+
+Confirm that there are no errors reported and no test failures reported.
+
+// Create a pull request

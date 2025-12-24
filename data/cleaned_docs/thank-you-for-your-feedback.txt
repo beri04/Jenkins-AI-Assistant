@@ -1,0 +1,35 @@
+layout: documentation
+title: Jenkins User Documentation
+section: doc
+
+
++++
+<!-- This JavaScript code retrieves the value of the current feedback page's URL
+     (stored in the variable "feedbackPageUrl" in the browser's local storage),
+     which is used to return the reader back to the page they provided feedback
+     on. -->
+<script>
+  function origUrl() {
+    location.replace(localStorage.getItem("feedbackPageUrl"));
+  }
+</script>
+
+<style>
+  #link {
+    color: #069;
+  }
+  #link:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+</style>
+
+<p/>
+
+<h3>Thank you for your feedback!</h3>
+
+<p/>
+
+<p>Click <span id="link" onclick="origUrl()">here</span> to return to the page
+you provided feedback on.</p>
++++

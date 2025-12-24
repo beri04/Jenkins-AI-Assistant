@@ -1,0 +1,9 @@
+title: Responding to Requests
+summary: Discussing the various ways to respond to requests
+layout: developersection
+wip: true
+references:
+- url: https://javadoc.jenkins.io/hudson/util/HttpResponses.html
+  title: HttpResponses Javadoc
+- url: https://javadoc.jenkins.io/component/stapler/org/kohsuke/stapler/interceptor/RespondSuccess.html
+  title: RespondSuccess Javadoc

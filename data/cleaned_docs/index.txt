@@ -1,0 +1,73 @@
+layout: documentation
+title: Tutorials overview
+section: doc
+
+
+This part of the Jenkins User Documentation contains a series of introductory
+tutorials to help you begin building your applications in an automated fashion
+with Jenkins.
+
+If you're a developer who wants to improve your understanding of Continuous
+Integration (CI) / Continuous Delivery (CD) concepts, or you might already be
+familiar with these concepts but don't yet know how to implement them in
+Jenkins, then these tutorials are a great place to start.
+
+[[getting-started]]
+
+*
+
+[[pipeline]]
+
+The following tutorials show how to use key features of Jenkins to facilitate implementing CI/CD
+processes to build your applications:
+
+*
+* Publishing HTML Reports in Pipeline (, )
+* Sending Notifications in Pipeline (, )
+*
+*
+*
+*
+*
+
+[[tools]]
+
+The following tutorials show how to use Jenkins to cover the basics of CI/CD
+concepts based on specific technology stacks.
+
+Choose the tutorial that's relevant to your technology stack or one that you're
+most familiar with:
+
+*
+*
+*
+*
+*
+*
+*
+
+Cloud tutorials are available including:
+
+*
+*
+
+You may find more tutorials in .
+
+*
+*
+*
+
+[[blueocean]]
+
+NOTE: Blue Ocean is no longer being actively maintained.
+These tutorials will continue to work until Blue Ocean is completely deprecated, at which point the tutorials will be removed from the documentation.
+
+*
+* Getting Started with Blue Ocean's Visual Pipeline Editor (, )
+*
+*
+
+'''
++++
+
++++

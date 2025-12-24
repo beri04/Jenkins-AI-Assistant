@@ -1,0 +1,27 @@
+layout: developersection
+title: Add a contributing guide
+
+
+If the plugin does not already include a contributing guide and if it would benefit from more detail than is provided in the , add a contributing guide so that others understand how to help with plugin development.
+Look for existing contributing instructions in files like `README.md`.
+Move the content from the `README.md` file to the `CONTRIBUTING.md` file so that the README file stays focused on user documentation.
+
+// Create the branch
+
+The contributing guide often includes instructions to:
+
+* Compile and run automated tests
+* Run the plugin in a development environment
+* Report code coverage of the plugin and its tests
+* Report static analysis results
+
+Refer to the contributing guides of other plugins for common examples, like:
+
+*
+*
+*
+*
+*
+*
+
+// Create a pull request

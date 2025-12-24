@@ -1,0 +1,20 @@
+title: Guide to Plugin Hosting
+layout: developer
+
+
+This guide will cover the entire plugin hosting process.
+
+Once you've completed all steps described on this page you will have accomplished the following:
+
+* Your plugin source code will be hosted in a repository in the `jenkinsci` GitHub organization.
+  You will have admin access to this repository.
+* You will be allowed to release the plugin to the Jenkins project Maven repository, which serves as a source for the Jenkins project operated update sites.
+
+Complete the following steps before requesting plugin hosting with the Jenkins project:
+
+Review the  and make sure they're satisfied.
+Make sure your plugin follows the plugin naming convention outlined in the .
+Have a public repository containing the plugin source code on GitHub.
+
+Kindly refrain from asking questions or communicating in private channels.
+We want the communications to take place in an open environment, so that we can have healthier discussions within our community.

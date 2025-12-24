@@ -1,0 +1,32 @@
+layout: section
+title: Offline Installations
+
+
+ifdef::env-github[:imagesdir: ../resources]
+ifndef::env-github[:imagesdir: ../../resources]
+
+This section describes how to install Jenkins on a machine
+that does not have an internet connection.
+
+To install Jenkins itself, download the appropriate war file and
+transfer it to your machine.
+
+Offline plugin installations require additional effort due to dependency requirements.
+
+The  is the recommended tool for offline plugin installation.
+It downloads user specified plugins and all dependencies of the user specified plugins.
+The  also reports available plugin updates and plugin security warnings.
+It is included in the official .
+It is also used to install plugins as part of the .
+Refer to the  for questions and answers
+
+If you want to transfer the individual plugins, you'll need to retrieve
+all dependencies as well. There are several dependency retrieval scripts and tools
+on Github. For example:
+
+*  - Java command line utility to install Jenkins plugins and their dependencies.
+*  - Java is
+required; packages Jenkins and plugins into an immutable package
+installer.  Supported formats include: RPM, DEB, Docker. Can proxy
+Jenkins and plugins through Nexus or Artifactory since Gradle is used to
+assemble plugins.

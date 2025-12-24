@@ -1,0 +1,242 @@
+layout: section
+title: Linux
+
+
+ifdef::env-github[:imagesdir: ../resources]
+ifndef::env-github[:imagesdir: ../../resources]
+
+Jenkins installers are available for several Linux distributions.
+
+* <<Debian/Ubuntu>>
+* <<Fedora>>
+* <<red-hat-centos,Red Hat Enterprise Linux and derivatives>>
+
+On Debian and Debian-based distributions like Ubuntu you can install Jenkins through `apt`.
+
+// Using Ubuntu 24.04 because the Jenkins project infrastructure uses Ubuntu
+.How To Install Jenkins on Ubuntu 24.04
+video::8fVOdFdzlKc[youtube, width=640, height=360]
+
+// Debian 12 and Ubuntu 24.04 installation processes are similar
+// .How To Install Jenkins on Debian 12
+// video::0EevQXwBV2A[youtube, width=640, height=360]
+
+You need to choose either the Jenkins Long Term Support release or the Jenkins weekly release.
+
+[#debian-java]
+
+Jenkins requires Java to run, yet not all Linux distributions include Java by default.
+Additionally,  with Jenkins.
+
+There are multiple Java implementations which you can use.
+ is the most popular one at the moment, we will use it in this guide.
+
+Update the Debian apt repositories, install OpenJDK 21, and check the installation with the commands:
+
+sudo apt update
+sudo apt install fontconfig openjdk-21-jre
+java -version
+
+If the installation was successful, you should see an output similar to the following:
+
+openjdk 21.0.8 2025-07-15
+OpenJDK Runtime Environment (build 21.0.8+9-Debian-1)
+OpenJDK 64-Bit Server VM (build 21.0.8+9-Debian-1, mixed mode, sharing)
+
+On Debian/Ubuntu, it is strongly recommended to install Java *before* Jenkins.
+If Jenkins is installed first and Java is added later, the Jenkins service may fail to start with:
+
+jenkins: failed to find a valid Java installation
+
+Installing Java first ensures the environment is fully initialized and avoids this issue.
+After completing the Java installation, continue with the Jenkins installation steps below.
+
+[#debian-stable]
+
+[#long-term-support-release]
+A  is chosen every 12 weeks from the stream of regular releases as the stable release for that time period.
+It can be installed from the .
+
+sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc \
+  https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc]" \
+  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt update
+sudo apt install jenkins
+
+[#debian-weekly]
+
+[#weekly-release]
+A new release is produced weekly to deliver bug fixes and features to users and plugin developers.
+It can be installed from the .
+
+sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc \
+  https://pkg.jenkins.io/debian/jenkins.io-2023.key
+echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc]" \
+  https://pkg.jenkins.io/debian binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt update
+sudo apt install jenkins
+
+Beginning with Jenkins 2.335 and Jenkins 2.332.1, the package is configured with `systemd` rather than the older System V `init`.
+More information is available in .
+
+The package installation will:
+
+* Setup Jenkins as a daemon launched on start. Run `systemctl cat jenkins` for more details.
+* Create a '`jenkins`' user to run this service.
+* Direct console log output to `systemd-journald`. Run `journalctl -u jenkins.service` if you are troubleshooting Jenkins.
+* Populate `/lib/systemd/system/jenkins.service` with configuration parameters for the launch, e.g `JENKINS_HOME`
+* Set Jenkins to listen on port 8080. Access this port with your browser to start configuration.
+
+If Jenkins fails to start because a port is in use,
+run `systemctl edit jenkins` and add the following:
+
+[Service]
+Environment="JENKINS_PORT=8081"
+
+Here, "8081" was chosen but you can put another port available.
+
+[TIP]
+
+Why use `apt` and not `apt-get` or another command?
+The apt command has been available since 2014.
+It has a command structure that is similar to `apt-get` but was created to be a more pleasant experience for typical users.
+Simple software management tasks like install, search and remove are easier with `apt`.
+
+You can install Jenkins through `dnf`. You need to add the Jenkins repository from the Jenkins website to the package manager first.
+
+[#fedora-stable]
+
+[#long-term-support-release-2]
+A  is chosen every 12 weeks from the stream of regular releases as the stable release for that time period.
+It can be installed from the  yum repository.
+
+sudo wget -O /etc/yum.repos.d/jenkins.repo \
+    https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+sudo dnf upgrade
+# Add required dependencies for the jenkins package
+sudo dnf install fontconfig java-21-openjdk
+sudo dnf install jenkins
+sudo systemctl daemon-reload
+
+[#fedora-weekly]
+
+[#weekly-release-2]
+A new release is produced weekly to deliver bug fixes and features to users and plugin developers.
+It can be installed from the  yum repository.
+
+sudo wget -O /etc/yum.repos.d/jenkins.repo \
+    https://pkg.jenkins.io/redhat/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io-2023.key
+sudo dnf upgrade
+# Add required dependencies for the jenkins package
+sudo dnf install fontconfig java-21-openjdk
+sudo dnf install jenkins
+
+You can enable the Jenkins service to start at boot with the command:
+
+sudo systemctl enable jenkins
+
+You can start the Jenkins service with the command:
+
+sudo systemctl start jenkins
+
+You can check the status of the Jenkins service using the command:
+
+sudo systemctl status jenkins
+
+If everything has been set up correctly, you should see an output like this:
+
+Loaded: loaded (/lib/systemd/system/jenkins.service; enabled; vendor preset: enabled)
+Active: active (running) since Tue 2018-11-13 16:19:01 +03; 4min 57s ago
+
+If you have a firewall installed, you must add Jenkins as an exception.
+You must change `YOURPORT` in the script below to the port you want to use.
+Port `8080` is the most common.
+
+YOURPORT=8080
+PERM="--permanent"
+SERV="$PERM --service=jenkins"
+
+firewall-cmd $PERM --new-service=jenkins
+firewall-cmd $SERV --set-short="Jenkins ports"
+firewall-cmd $SERV --set-description="Jenkins port exceptions"
+firewall-cmd $SERV --add-port=$YOURPORT/tcp
+firewall-cmd $PERM --add-service=jenkins
+firewall-cmd --zone=public --add-service=http --permanent
+firewall-cmd --reload
+
+[#red-hat-centos]
+
+You can install Jenkins through `yum` on Red Hat Enterprise Linux, AlmaLinux, Rocky Linux, Oracle Linux, CentOS, and other Red Hat based distributions.
+
+.How To Install Jenkins on Rocky Linux 9
+video::2-L0WohfsqY[youtube, width=640, height=360]
+
+You need to choose either the Jenkins Long Term Support release or the Jenkins weekly release.
+
+[#red-hat-stable]
+
+[#long-term-support-release-3]
+A  is chosen every 12 weeks from the stream of regular releases as the stable release for that time period.
+It can be installed from the  yum repository.
+
+sudo wget -O /etc/yum.repos.d/jenkins.repo \
+    https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+sudo yum upgrade
+# Add required dependencies for the jenkins package
+sudo yum install fontconfig java-21-openjdk
+sudo yum install jenkins
+sudo systemctl daemon-reload
+
+[#red-hat-weekly]
+
+[#weekly-release-3]
+A new release is produced weekly to deliver bug fixes and features to users and plugin developers.
+It can be installed from the  yum repository.
+
+sudo wget -O /etc/yum.repos.d/jenkins.repo \
+    https://pkg.jenkins.io/redhat/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io-2023.key
+sudo yum upgrade
+# Add required dependencies for the jenkins package
+sudo yum install fontconfig java-21-openjdk
+sudo yum install jenkins
+
+You can enable the Jenkins service to start at boot with the command:
+
+sudo systemctl enable jenkins
+
+You can start the Jenkins service with the command:
+
+sudo systemctl start jenkins
+
+You can check the status of the Jenkins service using the command:
+
+sudo systemctl status jenkins
+
+If everything has been set up correctly, you should see an output like this:
+
+Loaded: loaded (/lib/systemd/system/jenkins.service; enabled; vendor preset: enabled)
+Active: active (running) since Tue 2023-06-22 16:19:01 +03; 4min 57s ago
+...
+
+If you have a firewall installed, you must add Jenkins as an exception.
+You must change `YOURPORT` in the script below to the port you want to use.
+Port `8080` is the most common.
+
+YOURPORT=8080
+PERM="--permanent"
+SERV="$PERM --service=jenkins"
+
+firewall-cmd $PERM --new-service=jenkins
+firewall-cmd $SERV --set-short="Jenkins ports"
+firewall-cmd $SERV --set-description="Jenkins port exceptions"
+firewall-cmd $SERV --add-port=$YOURPORT/tcp
+firewall-cmd $PERM --add-service=jenkins
+firewall-cmd --zone=public --add-service=http --permanent
+firewall-cmd --reload

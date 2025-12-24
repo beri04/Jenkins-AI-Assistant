@@ -1,0 +1,14 @@
+layout: developersection
+title: Enable incrementals
+
+
+Jenkins evaluation of pull request builds is faster and easier when incremental builds are enabled.
+See the jenkins.io  for more details.
+
+// Create the branch
+
+Run the Maven command to enable incrementals:
+
+mvn incrementals:incrementalify
+
+// Create a pull request

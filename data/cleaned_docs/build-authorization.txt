@@ -1,0 +1,2 @@
+layout: redirect
+redirect_url: "/doc/book/security/build-authorization/"

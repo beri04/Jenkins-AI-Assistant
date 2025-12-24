@@ -1,0 +1,57 @@
+layout: developer
+title: Preparing for Plugin Development
+references:
+- url: https://adoptium.net/
+  title: Eclipse Temurin Java
+- url: https://maven.apache.org # TODO redundant?
+  title: Apache Maven website
+
+
+-
+-
+-
+-
+
+// TIMEBASED
+Jenkins is based on Java, so to build Jenkins plugins you need to install a Java Development Kit (JDK).
+Java 21 is the version we recommend to users, so that's what we're using in this tutorial.
+
+You can download and install Java 21 from the .
+
+NOTE: Many Linux distributions provide packages for Java for an easier install and upgrade experience.
+Consult your distribution's documentation for details.
+To check if you have Java already installed, run `java -version` on a command prompt.
+
+// Install and configure Apache Maven
+
+Please ensure that the versions you install are compatible with the  of the HPI plugin.
+
+To verify that Maven is installed, run the following command:
+
+mvn -version
+
+This command prints some diagnostic output, including the versions of Java and Maven, and which Java installation was found by Maven.
+It should indicate a _21_ version of Java, and list the path to where Java is located.
+If you don't see this information, see <<Troubleshooting>>.
+
+IntelliJ users just need to open the project and all should work out of the box.
+
+You are advised to use the , features it provides can be found in its .
+
+You can create a new plugin using one of the Jenkins plugin .
+Create a new Maven project using **Create from archetype** and **Add an Archetype**.
+Select the GroupId and ArtifactId as above, and choose RELEASE as version.
+On the next screen, select io.jenkins.plugins as groupID and choose an artifactId (Project name) and Version to your liking.
+This will automatically create a maven project based on the specified artifact (for example, `empty-plugin`).
+
+NetBeans users can use the IDE's Maven support to open the project directly.
+
+As you navigate through the code, you can tell NetBeans to attach source code JAR files by clicking the "Attach" button that appears in the top of the main content window. This allows you to read the Jenkins core source code as you develop plugins. (Or just select Download Sources on the Dependencies node.)
+
+You are advised to use the . This offers many Jenkins-specific features. Most visibly, create a new plugin using New Project » Maven » Jenkins Plugin, and use Run project to test it.
+
+// Any eclipse users around who know more?
+
+Open the project as an existing Maven Project.
+
+NOTE: Anything not working for you? Ask for help on our community forum  or .

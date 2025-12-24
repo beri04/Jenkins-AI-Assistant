@@ -1,0 +1,41 @@
+layout: developersection
+title: Update Jenkins version
+
+
+.Require a newer minimum Jenkins version
+video::Fev8KfFsPZE[youtube,width=800,height=420,start=2430]
+
+Jenkins plugins declare a minimum supported Jenkins version.
+The minimum Jenkins version is a good way for plugin developers to indicate the range of Jenkins versions they are willing to support and test.
+See the  for the recommended minimum Jenkins version.
+
+// Create the branch
+
+Update the minimum required Jenkins version by setting a `jenkins.version` value in the properties section of the `pom.xml` file:
+
+   <properties>
+     <jenkins.version>2.516.3</jenkins.version>
+   </properties>
+
+If the plugin is already using the plugin bill of materials, then the bill of materials also needs to be updated with the matching `artifactId` for the minimum required Jenkins version.
+The `version` may also need an upgrade see the .
+
+The `git diff` might look like this:
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+-        <artifactId>bom-2.440.x</artifactId>
+<artifactId>bom-2.504.x</artifactId>
+-        <version>3435.v238d66a_043fb_</version>
+<version>5701.va_b_018a_a_6b_0d3</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+// Compile the plugin
+
+// Create a pull request

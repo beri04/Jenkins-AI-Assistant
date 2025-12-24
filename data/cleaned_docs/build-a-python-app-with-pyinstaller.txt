@@ -1,0 +1,362 @@
+layout: documentation
+title: Build a Python app with PyInstaller
+section: doc
+
+
+This tutorial shows you how to use Jenkins to orchestrate building a simple
+Python application with https://www.pyinstaller.org/[PyInstaller].
+
+If you are a Python developer who is new to CI/CD concepts, or you might be
+familiar with these concepts but don't know how to implement building your
+application using Jenkins, then this tutorial is for you.
+
+The simple Python application (which you'll obtain from a sample repository on
+GitHub) is a command line tool "add2vals" that outputs the addition of two
+values.
+If at least one of the values is a string, "add2vals" instead treats both values
+as a string and concatenates the values.
+The "add2" function in the "calc" library (which "add2vals" imports) is accompanied by a set of unit tests.
+These are tested with pytest to check that this function works as expected and
+the results are saved to a JUnit XML report.
+
+The delivery of the "add2vals" tool through PyInstaller converts this tool into
+a standalone executable file for Linux, which you can download through Jenkins
+and execute at the command line on Linux machines without Python.
+
+*Duration:* This tutorial takes 20-40 minutes to complete (assuming you've
+already met the <<prerequisites,prerequisites>> below). The exact duration will
+depend on the speed of your machine and network.
+
+You can stop this tutorial at any point in time and continue from where you left
+off.
+
+If you've already run though , you can skip the
+<<prerequisites,Prerequisites>> section below and proceed on to <<fork-sample-repository,forking the
+sample repository>>. (Just ensure you have
+ installed locally.) If you need to
+restart Jenkins, simply follow the restart instructions in
+<<stopping-and-restarting-jenkins,Stopping and restarting Jenkins>> and then
+proceed on.
+
+**  and optionally
+
+[[fork-sample-repository]]
+[[fork-and-clone-the-sample-repository-on-github]]
+
+Obtain the simple "add" Python application from GitHub, by forking the sample
+repository of the application's source code into your own GitHub account and
+then cloning this fork locally.
+
+Ensure you are signed in to your GitHub account.
+If you don't yet have a GitHub account, sign up for a free one on the .
+Fork the
+ on GitHub into your local GitHub account.
+If you need help with this process, refer to the  documentation on the GitHub website for more information.
+Clone your forked `simple-python-pyinstaller-app` repository (on GitHub)locally to your machine.
+To begin this process, do either of the following (where `<your-username>` is the name of your user account on your operating system):
+** If you have the GitHub Desktop app installed on your machine:
+.. In GitHub, click the green *Code* button on your forked repository, then *Open in Desktop*.
+.. In GitHub Desktop, before clicking *Clone* on the *Clone a Repository* dialog box, ensure *Local Path* for:
+*** macOS is `/Users/<your-username>/Documents/GitHub/simple-python-pyinstaller-app`
+*** Linux is `/home/<your-username>/GitHub/simple-python-pyinstaller-app`
+*** Windows is `C:\Users\<your-username>\Documents\GitHub\simple-python-pyinstaller-app`
+** Otherwise:
+.. Open up a terminal/command line prompt and `cd` to the appropriate directory on:
+*** macOS - `/Users/<your-username>/Documents/GitHub/`
+*** Linux - `/home/<your-username>/GitHub/`
+*** Windows - `C:\Users\<your-username>\Documents\GitHub\` (although use a Git bash command line window as opposed to the usual Microsoft command prompt)
+.. Run the following command to continue/complete cloning your forked repo: +
+   `git clone https://github.com/YOUR-GITHUB-ACCOUNT-NAME/simple-python-pyinstaller-app` +
+   where `YOUR-GITHUB-ACCOUNT-NAME` is the name of your GitHub account.
+
+1. Obtain the latest Jenkins LTS deployment, customized for this tutorial, by cloning the .
+2. After cloning, navigate to the `quickstart-tutorials` directory, and execute the command
+docker compose --profile python up -d
+
+to run the example.
+3. Once the containers (one for the controller, one for the agent) are running successfully (you can verify this with `docker compose ps`), the controller can be accessed at http://localhost:8080.
+
+If you are unable to install `docker compose` on your machine for any reason, you can still run the example in the cloud for free using either:
+
+* *GitHub Codespaces* (Recommended): Click the *Code* button in the , select *Codespaces*, then *Create codespace on master*.
+GitHub Codespaces provides .
+Once the Codespace starts, the setup will run automatically, and you'll see a welcome message with instructions.
+
+* *GitPod*: Click on  to open a GitPod workspace.
+GitPod .
+You need to link it to your GitHub account.
+
+Now, log in using the `admin` username and `admin` password.
+
+In Jenkins, select *New Item* under *Dashboard >* at the top left.
+Enter your new Pipeline project name in *Enter an item name* (e.g. `simple-python-pyinstaller-app`).
+Scroll down if necessary and select *Pipeline*, then click *OK* at the end of the page.
+(Optional) Enter a Pipeline *Description*.
+Select *Pipeline* on the left pane.
+Select *Definition*, and then choose the *Pipeline script from SCM* option.
+This option instructs Jenkins to obtain your Pipeline from the source control management (SCM), which is your forked Git repository.
+Choose *Git* from the options in *SCM*.
+Enter the URL of your repository in *Repositories/Repository URL*.
+This URL can be found when clicking on the green button *Code* in the main page of your GitHub repo.
+Hit the *Save* button at the end of the page.
+You're now ready to create a `Jenkinsfile` to check into your locally cloned Git repository.
+
+You're now ready to create your Pipeline that will automate building your Python application with PyInstaller in Jenkins.
+Your Pipeline will be created as a `Jenkinsfile`, which will be committed to your locally cloned Git repository (`simple-python-pyinstaller-app`), and then pushed to GitHub, where Jenkins will be able to find it.
+
+This is the foundation of "Pipeline-as-Code", which treats the continuous delivery pipeline as part of the application to be versioned and reviewed like any other code.
+Read more about Pipeline and what a Jenkinsfile is in the  and  sections of the User Handbook.
+
+First, create an initial Pipeline with a "Build" stage that executes the first part of the entire production process for your application.
+This "Build" stage compiles your simple Python application into byte code.
+
+Using your favorite text editor or IDE, create and save a new text file with the name `Jenkinsfile` at the root of your local `simple-python-pyinstaller-app` Git repository.
+Copy the following Declarative Pipeline code and paste it into your empty `Jenkinsfile`:
+pipeline {
+    agent any // <1> stages {
+        stage('Build') { // <2> steps {
+                sh 'python -m py_compile sources/add2vals.py sources/calc.py' // <3> stash(name: 'compiled-results', includes: 'sources/*.py*') // <4> }
+        }
+    }
+}
+
+<1> The  section with the `any`
+parameter specified at the top of this Pipeline code block means that any agent could be allocated for the entire Pipeline's execution and that each
+ directive does not have to specify its own `agent` section.
+<2> Defines a  (directive) called
+`Build` that appears on the Jenkins UI.
+<3> This
+
+step (of the  section) runs the
+Python command to compile your application and its `calc` library into byte code
+files (each with `.pyc` extension), which are placed into the `sources`
+workspace directory (within the
+`/var/jenkins_home/workspace/simple-python-pyinstaller-app` directory in the
+Jenkins container).
+<4> This
+
+step (of the  section) saves
+the Python source code and compiled byte code files (with `.pyc` extension) from the `sources`
+workspace directory for use in later stages.
+Save your edited `Jenkinsfile` and commit it to your local
+  `simple-python-pyinstaller-app` Git repository. E.g. Within the
+  `simple-python-pyinstaller-app` directory, run the commands: +
+  `git add .` +
+  then +
+  `git commit -m "Add initial Jenkinsfile"` +
+and in the end +
+  `git push`
+
+In Jenkins, select *Build Now* on the left pane.
+After making a clone of your local `simple-python-pyinstaller-app` Git repository itself, Jenkins:
+.. Initially queues the project to be run on the agent.
+.. Runs the `Build` stage defined in the `Jenkinsfile` on the agent.
+You should now see on the left a green check mark and #1, indicating that your first Pipeline has run successfully.
+You should also see in the main part of the page a *Stage View* of your Pipeline, which shows the `Build` stage run, indicating that your first Pipeline has run successfully.
+[.boxshadow]
+
+You can now click on *#1* to see the details of the build.
+You will then see how much time the build took waiting in the queue and how much time it took to run.
+
+[.boxshadow]
+
+On the left, you can click on *Pipeline Overview* to see the stages of the Pipeline.
+[.boxshadow]
+
+If you click on the *Build* stage, you will see more information about the stage, including the output of the `python` command if you click on the green `python` section.
+[.boxshadow]
+
+You can now click on *simple-python-pyinstaller-app* (if that's the name you chose for your pipeline) on the top left to return to your pipeline main page.
+
+Go back to your text editor/IDE and ensure your `Jenkinsfile` is open.
+Copy and paste the following Declarative Pipeline syntax immediately under the
+  `Build` stage of your `Jenkinsfile`:
+stage('Test') {
+            steps {
+                sh 'py.test --junit-xml test-reports/results.xml sources/test_calc.py'
+            }
+            post {
+                always {
+                    junit 'test-reports/results.xml'
+                }
+            }
+        }
+
+so that you end up with:
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                sh 'python -m py_compile sources/add2vals.py sources/calc.py'
+                stash(name: 'compiled-results', includes: 'sources/*.py*')
+            }
+        }
+        stage('Test') { // <1> steps {
+                sh 'py.test --junit-xml test-reports/results.xml sources/test_calc.py' // <2> }
+            post {
+                always {
+                    junit 'test-reports/results.xml' // <3> }
+            }
+        }
+    }
+}
+
+<1> Defines a  (directive) called `Test` that appears on the Jenkins UI.
+<2> This  step (of the  section) executes pytest's `py.test` command on `sources/test_calc.py`, which runs a set of unit tests (defined in `test_calc.py`) on the "calc" library's `add2` function (used by your simple Python application `add2vals`).
+The:
+* `--junit-xml test-reports/results.xml` option makes `py.test` generate a JUnit
+  XML report, which is saved to `test-reports/results.xml` (within the
+  `/var/jenkins_home/workspace/simple-python-pyinstaller-app` directory in Jenkins).
+<3> This
+
+step (provided by the ) archives the
+JUnit XML report (generated by the `py.test` command above) and exposes the
+results through the Jenkins interface. The
+ section's `always` condition that
+contains this `junit` step ensures that the step is _always_ executed _at the
+completion_ of the `Test` stage, regardless of the stage's outcome.
+Save your edited `Jenkinsfile` and commit it to your local
+  `simple-python-pyinstaller-app` Git repository. E.g. Within the
+  `simple-python-pyinstaller-app` directory, run the commands: +
+  `git add .` +
+  then +
+  `git commit -m "Add 'Test' stage"`
+and in the end +
+`git push`
+
+In Jenkins, navigate back to the *Dashboard* if necessary, then *simple-python-pyinstaller-app* and launch another build thanks to *Build Now*.
+After a while, you should see a new column labeled *Test* appear in the *Stage View*.
+
+[.boxshadow]
+
+You can click on *#2* or on the number representing your last build on the left, under *Build History*. You will then see the details of the build.
+You can now select *Pipeline Overview* to see the stages of the Pipeline.
+[.boxshadow]
+
+Notice the additional "Test" stage.
+You can select the "Test" stage checkmark to access the output from that stage.
+[.boxshadow]
+
+Go back to your text editor/IDE and ensure your `Jenkinsfile` is open.
+Copy and paste the following Declarative Pipeline syntax immediately under the
+  `Test` stage of your `Jenkinsfile`:
+stage('Deliver') {
+            steps {
+                sh "pyinstaller --onefile sources/add2vals.py"
+            }
+            post {
+                success {
+                    archiveArtifacts 'dist/add2vals'
+                }
+            }
+        }
+
+and add a `skipStagesAfterUnstable` option so that you end up with:
+pipeline {
+    agent any
+    options {
+        skipStagesAfterUnstable()
+    }
+    stages {
+        stage('Build') {
+            steps {
+                sh 'python -m py_compile sources/add2vals.py sources/calc.py'
+                stash(name: 'compiled-results', includes: 'sources/*.py*')
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'py.test --junit-xml test-reports/results.xml sources/test_calc.py'
+            }
+            post {
+                always {
+                    junit 'test-reports/results.xml'
+                }
+            }
+        }
+        stage('Deliver') { // <1> steps {
+                sh "pyinstaller --onefile sources/add2vals.py" // <2> }
+            post {
+                success {
+                    archiveArtifacts 'dist/add2vals' // <3> }
+            }
+        }
+    }
+}
+
+<1> Defines a  (directive) called `Deliver` that appears on the Jenkins UI.
+<2> This  step (of the  section) executes the `pyinstaller` command on your simple Python application.
+This bundles your `add2vals.py` Python application into a single standalone executable file (via the `--onefile` option) and outputs this file to the `dist` workspace directory (within the Jenkins home directory).
+Although this step consists of a single command, as a general principle, it's a good idea to keep your Pipeline code (i.e. the `Jenkinsfile`) as tidy as possible and place more complex build steps (particularly for stages consisting of 2 or more steps) into separate shell script files.
+This ultimately makes maintaining your Pipeline code easier, especially if your Pipeline gains more complexity.
+<3> This  step (provided as part of Jenkins core) archives the standalone executable file (generated by the `pyinstaller` command above at `dist/add2vals` within the Jenkins home's workspace directory) and exposes this file through the Jenkins interface.
+The  section's `success` condition that contains this `archiveArtifacts` step ensures that the step is executed _at the completion_ of the `Deliver` stage _only if_ this stage completed successfully.
+Save your edited `Jenkinsfile` and commit it to your local
+  `simple-python-pyinstaller-app` Git repository. E.g. Within the
+  `simple-python-pyinstaller-app` directory, run the commands: +
+  `git add .` +
+  then +
+  `git commit -m "Add 'Deliver' stage"` +
+and in the end +
+`git push`
+
+In Jenkins, sign in if necessary, and go back to the *Dashboard* and then *simple-python-pyinstaller-app* or go directly to *simple-python-pyinstaller-app* depending on where you're starting from.
+Select *Build Now* on the left.
+After a while, you should see a new column labeled *Deliver* appear in the *Stage View*.
+[.boxshadow]
+
+You can click on *#3* or on the number representing your last build, in the left pane under *Build History* to see the details of the build.
+
+You can now click on *Pipeline Overview* to see the stages of the Pipeline.
+Once you click on the *Deliver* green checkmark, and then on the first green section, the output should be something like below, showing you the results of PyInstaller bundling your Python application into a single standalone executable file.
+[.boxshadow]
+
+You can now click on *simple-python-pyinstaller-app* on the top left, and then on *Stages* at the left. It will list your previous Pipeline runs in reverse chronological order.
+[.boxshadow]
+
+If you use Linux, you can try running the standalone `add2vals` application you
+generated with PyInstaller locally on your machine. To do this:
+
+Access the *Stage View* interface (found after clicking on *Dashboard* *>* *simple-python-pyinstaller-app* or directly on *simple-python-pyinstaller-app* if it's accessible).
+You should see a *Last Successful Artifacts* section on top of *Stage View*.
+[.boxshadow]
+
+You should then see a *add2vals* link in the *Last Successful Artifacts* section.
+Click the link to download the standalone executable file to your browser's "Downloads" directory.
+Back in your operating system's terminal prompt, `cd` to your browser's "Downloads" directory.
+Make the `add2vals` file executable - i.e. `chmod a+x add2vals`
+Run the command `./add2vals` and follow the instructions provided by your app.
+
+Well done! You've just used Jenkins to build a simple Python application!
+
+The "Build", "Test" and "Deliver" stages you created above are the basis for building more complex Python applications in Jenkins, as well as Python applications that integrate with other technology stacks.
+
+Because Jenkins is extremely extensible, it can be modified and configured to handle practically any aspect of build orchestration and automation.
+
+To learn more about what Jenkins can do, check out:
+
+* The  page for other introductory
+  tutorials.
+* The  for more detailed information about using
+  Jenkins, such as  (in particular
+  ) and the
+   interface.
+* The  for the latest events, other tutorials and
+  updates.
+
+After completing the tutorial, it's important to clean up your environment to prevent interference with other tutorials you might try later.
+
+To stop the containers and remove associated volumes:
+
+docker compose --profile python down -v --remove-orphans
+
+This command ensures a clean slate for your next project.
+
+The `--remove-orphans` option instructs Docker Compose to remove any containers that are not defined in the `docker-compose.yml` file but are labeled as belonging to the project.
+This helps in cleaning up any services that might have been started independently but are considered part of the project.
+
+'''
++++
+
++++

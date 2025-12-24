@@ -1,0 +1,34 @@
+layout: developersection
+title: Replace JSR-305
+
+
+# Replace JSR-305 annotations with Spotbugs annotations
+
+Annotations for `Nonnull`, `CheckForNull`, and several others were proposed for Java as part of **dormant** .
+The proposal never became a part of standard Java.
+Jenkins plugins should switch from using JSR-305 annotations to use Spotbugs annotations that provide the same semantics.
+
+Refer to the  from James Nord.
+
+// Create the branch
+
+## Migrate Nonnull
+
+Replace imports of `javax.annotation.Nonnull` with imports of `edu.umd.cs.findbugs.annotations.NonNull`.
+
+Replace references to `Nonnull` with `NonNull`.
+
+## Migrate CheckForNull
+
+Replace imports of `javax.annotation.CheckForNull` with imports of `edu.umd.cs.findbugs.annotations.CheckForNull`.
+
+## Remove unused dependencies from pom file
+
+If the pom file includes a `jsr305` dependency, remove it.
+The spotbugs annotations are provided by the parent pom.
+
+// Compile the plugin
+
+Confirm that JSR-305 is not mentioned in the compiler output and that compilation succeeds.
+
+// Create a pull request

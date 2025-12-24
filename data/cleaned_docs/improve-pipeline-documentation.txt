@@ -1,0 +1,9 @@
+layout: developersection
+title: Improve Pipeline documentation
+
+
+Jenkins Pipeline users often  that  more information on specific Pipeline steps and how they are used is needed.
+See the  for the techniques used there to identify Pipeline documentation issues and improve the Pipeline documentation.
+Improve the help of a Pipeline step in a single plugin to help users of that Pipeline step.
+
+Remind users that the Pipeline Syntax Snippet Generator is available and can answer many questions.

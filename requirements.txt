@@ -1,0 +1,17 @@
+faiss-cpu
+transformers
+sentence-transformers
+torch
+numpy
+beautifulsoup4
+lxml
+html2text
+requests
+tqdm
+fastapi
+uvicorn
+python-multipart
+groq
+pydantic
+rich
+typing-extensions

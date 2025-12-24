@@ -1,0 +1,3 @@
+Use Apache Maven to compile the plugin and run its automated tests with the command:
+
+mvn clean verify

@@ -1,0 +1,276 @@
+layout: documentation
+title: Build a Java app with Maven
+section: doc
+
+
+This tutorial shows you how to use Jenkins to build a simple Java application with https://maven.apache.org/[Maven].
+
+If you are a Java developer using Maven, but new to CI/CD concepts, or if you are familiar with these concepts, but don't know how to implement building your application using Jenkins, then this tutorial is for you.
+
+This example Java application from a GitHub repository outputs the string "Hello world!", and is accompanied by some unit tests, to check that the main application works as expected.
+The test results are saved to a JUnit XML report.
+
+*Duration:* This tutorial takes 20-40 minutes to complete, assuming you meet the below <<prerequisites,prerequisites>>.
+The exact duration will depend on the speed of your machine and whether you've already installed `docker` and `docker compose`.
+
+You can stop this tutorial at any time and continue from where you left off.
+
+Make sure you have  installed locally.
+
+** , and optionally .
+
+[[fork-sample-repository]]
+[[fork-and-clone-the-sample-repository-on-github]]
+
+Get the "Hello world!" Java application from GitHub, by forking the sample repository of the application's source code into your own GitHub account, and then cloning this fork locally.
+
+Make sure you are signed in to your GitHub account.
+If you don't yet have a GitHub account, sign up for free at .
+Fork the  on GitHub into your local GitHub account.
+If you need help, refer to the  for more information.
+Clone the forked `simple-java-maven-app` repository from GitHub to your machine.
+To begin this process, do either of the following, where `<your-username>` is the name of your user account on your operating system:
+** If you have the  app installed on your machine:
+.. In GitHub, select *Code* in your forked repository, then select *Open with GitHub Desktop*.
+.. In GitHub Desktop, before selecting *Clone* in *Clone a Repository*, ensure *Local Path* for your operating system, as follows:
+*** macOS is `/Users/<your-username>/Documents/GitHub/simple-java-maven-app`
+*** Linux is `/home/<your-username>/GitHub/simple-java-maven-app`
+*** Windows is `C:\Users\<your-username>\Documents\GitHub\simple-java-maven-app`
+** Alternatively:
+.. Open a terminal/command line prompt and `cd` to the appropriate directory, according to your operating system:
+*** macOS - `/Users/<your-username>/Documents/GitHub/`
+*** Linux - `/home/<your-username>/GitHub/`
+*** Windows - `C:\Users\<your-username>\Documents\GitHub\` (Use a Git bash command line window, not the usual Microsoft command prompt)
+.. Run the following command to clone your forked repo, replacing `YOUR-GITHUB-ACCOUNT-NAME` with the name of your GitHub account:
+git clone https://github.com/YOUR-GITHUB-ACCOUNT-NAME/simple-java-maven-app
+
+1. Obtain the latest Jenkins deployment, customized for this tutorial, by cloning the .
+2. After cloning, navigate to the `quickstart-tutorials` directory, and execute the command
+docker compose --profile maven up -d
+
+to run the example.
+3. Once the containers are running successfully (you can verify this with `docker compose ps`), the controller can be accessed at http://localhost:8080.
+
+If you are unable to install `docker compose` on your machine for any reason, you can still run the example in the cloud for free using either:
+
+* *GitHub Codespaces* (Recommended): Click the *Code* button in the , select *Codespaces*, then *Create codespace on master*.
+GitHub Codespaces provides .
+Once the Codespace starts, the setup will run automatically, and you'll see a welcome message with instructions.
+
+* *GitPod*: Click on  to open a GitPod workspace.
+GitPod .
+You need to link it to your GitHub account.
+
+Now, log in using the `admin` username and `admin` password.
+
+In Jenkins, select *New Item* under *Dashboard >* at the top left.
+Enter your new Pipeline project name in *Enter an item name*.
+Scroll down if necessary and select *Pipeline*, then select *OK* at the end of the page.
+(Optional) Enter a Pipeline *Description*.
+Select *Pipeline* on the left pane.
+Select *Definition*, and then choose the *Pipeline script from SCM* option.
+This option instructs Jenkins to obtain your Pipeline from the source control management (SCM), which is your forked Git repository.
+Choose *Git* from the options in *SCM*.
+Enter the URL of your repository in *Repositories/Repository URL*. This URL can be found when clicking on the green *Code* button in the main page of your GitHub repo.
+Select *Save* at the end of the page.
+You're now ready to create a `Jenkinsfile` to check into your locally cloned Git repository.
+
+You can now create a Pipeline that automates the building of your Java application with Maven in Jenkins.
+
+Your Pipeline is created as a `Jenkinsfile`, which is committed to your locally cloned Git repository (`simple-java-maven-app`).
+
+This is the foundation of "Pipeline-as-Code", which treats the continuous delivery pipeline as a part of the application, to be versioned and reviewed like any other code.
+Read more about Pipeline and what a Jenkinsfile is in the  and  sections of the User Handbook.
+
+First, create an initial Pipeline to download a Maven Docker image and run it as a Docker container, which will build your Java application.
+Ensure you add a "Build" stage to the Pipeline that begins orchestrating this whole process.
+
+Using your preferred text editor or IDE, create and save a new text file named `Jenkinsfile` at the root of your local `simple-java-maven-app` Git repository.
+Copy the following Declarative Pipeline code and paste it into your newly created `Jenkinsfile`:
+pipeline {
+    agent any
+    stages {
+        stage('Build') { // <1> steps {
+                sh 'mvn -B -DskipTests clean package' // <2> }
+        }
+    }
+}
+
+<1> Defines a  (directive) called `Build` that appears on the Jenkins UI.
+<2> This  step runs the Maven command to cleanly build your Java application without running any tests.
+Save your edited `Jenkinsfile` and commit it to your local `simple-java-maven-app` Git repository.
+Within the `simple-java-maven-app` directory, run the commands:
+.. `git add .`
+.. `git commit -m "Add initial Jenkinsfile"`
+.. `git push` to push your changes to your forked repository on GitHub, so it can be picked up by Jenkins.
+
+Now select *Build Now* on the left pane of your Pipeline project in Jenkins.
+After making a clone of your local `simple-java-maven-app` Git repository itself, Jenkins:
+
+Initially queues the project to be run on the agent.
+Runs the `Build` stage defined in the `Jenkinsfile` on the agent.
+
+During this time, Maven downloads many artifacts necessary to build your Java application, which are ultimately stored in Jenkins' local Maven repository.
+[.boxshadow]
+
+You can now click on *#1* to see the details of the build.
+You will then see how much time the build took waiting in the queue, and how much time it took to run.
+
+[.boxshadow]
+
+On the left, you can click on *Pipeline Overview* to see the stages of the Pipeline.
+[.boxshadow]
+
+If you select the *Build* stage, you will see more information about the stage, including the output of the `mvn` command if you click on the green `maven` section.
+[.boxshadow]
+
+You can now click on *Maven tutorial* (if that's the name you chose for your pipeline) on the top left to return to your pipeline main page.
+
+Go back to your text editor/IDE and ensure your `Jenkinsfile` is open.
+Copy and paste the following Declarative Pipeline syntax immediately under the `Build` stage of your `Jenkinsfile`:
+stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+so that you end up with:
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                sh 'mvn -B -DskipTests clean package'
+            }
+        }
+        stage('Test') { // <1> steps {
+                sh 'mvn test' // <2> }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml' // <3> }
+            }
+        }
+    }
+}
+
+<1> Defines a  (directive) called `Test` that appears on the Jenkins UI.
+<2> This  step executes the Maven command to run the unit test on your Java application.
+This command also generates a JUnit XML report, which is saved to the `target/surefire-reports` directory within the `/var/jenkins_home/workspace/simple-java-maven-app` directory in the Jenkins container.
+<3> This  step (provided by the ), archives the JUnit XML report generated by the `mvn test` command above, and displays the results through the Jenkins interface.
+The  section's `always` condition that contains this `junit` step ensures that the step is _always_ executed _at the completion_ of the `Test` stage, regardless of the stage's outcome.
+Save your edited `Jenkinsfile` and commit it to your local `simple-java-maven-app` Git repository.
+Within the `simple-java-maven-app` directory, run the commands:
+.. `git stage .`
+.. `git commit -m "Add 'Test' stage"`
+.. `git push` to push your changes to your forked repository on GitHub, so it can be picked up by Jenkins.
+
+In Jenkins, go back to *Dashboard* if necessary, then *Maven Tutorial* and launch another build thanks to *Build Now*.
+After a while, a new column *Test* appear in the *Stage View*.
+
+[.boxshadow]
+
+You can click on *#2* or on the number representing your last build on the left, under *Build History*. You will then see the details of the build.
+If Docker has not restarted since you last ran the Pipeline <<create-your-initial-pipeline-as-a-jenkinsfile,above>>, then no Maven artifacts are downloaded during the "Build" stage.
+Therefore, running your Pipeline this subsequent time should be much faster.
+
+You can now click on *Pipeline Overview* to see the stages of the Pipeline.
+[.boxshadow]
+
+Notice the additional "Test" stage.
+You can select the "Test" stage checkmark to access the output from that stage.
+[.boxshadow]
+
+Go back to your text editor/IDE and ensure your `Jenkinsfile` is open.
+Copy and paste the following Declarative Pipeline syntax immediately under the `Test` stage of your `Jenkinsfile`:
+stage('Deliver') {
+            steps {
+                sh './jenkins/scripts/deliver.sh'
+            }
+        }
+
+Add a `skipStagesAfterUnstable` option, resulting in:
+pipeline {
+    agent any
+    options {
+        skipStagesAfterUnstable()
+    }
+    stages {
+        stage('Build') {
+            steps {
+                sh 'mvn -B -DskipTests clean package'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+        stage('Deliver') { // <1> steps {
+                sh './jenkins/scripts/deliver.sh' // <2> }
+        }
+    }
+}
+
+<1> Defines a new stage called `Deliver` that appears on the Jenkins UI.
+<2> This  step runs the shell script `deliver.sh` located in the `jenkins/scripts` directory from the root of the `simple-java-maven-app` repository.
+Refer to the `deliver.sh` script file to learn more.
+It is generally good practice to keep your Pipeline code, such as your `Jenkinsfile`, streamlined, and place more complex build steps, particularly stages consisting of 2 or more steps, into separate shell script files (like the `deliver.sh` file).
+Maintaining your Pipeline code is easier this way.
+Save your updated `Jenkinsfile` and commit it to your local `simple-java-maven-app` Git repository.
+.. `git stage .`
+.. `git commit -m "Add 'Deliver' stage"`
+.. `git push` to push your changes to your forked repository on GitHub, so it can be picked up by Jenkins.
+
+In Jenkins, sign in if necessary, and go back to the *Dashboard* and then *Maven tutorial* or go directly to *Maven tutorial* depending on where you're starting from.
+Select *Build Now* on the left. You should see after a while a new column *Deliver* appear in the *Stage View*.
+[.boxshadow]
+
+You can click on *#3* or on the number representing your last build on the left, under *Build History*. You will then see the details of the build.
+
+You can now click on *Pipeline Overview* to see the stages of the Pipeline.
+Once you click on the *Deliver* green checkmark, and then on the first green section, the output should be something like below, showing you the execution results of your Java application at the end.
+[.boxshadow]
+
+You can now click on *Maven tutorial* on the top left, and then on *Stages* at the left. It will list your previous Pipeline runs in reverse chronological order.
+[.boxshadow]
+
+Well done!
+You've just used Jenkins to build a simple Java application with Maven!
+
+The "Build", "Test" and "Deliver" stages you created above are the basis for building more complex Java applications with Maven in Jenkins, as well as Java and Maven applications that integrate with other technology stacks.
+
+Because Jenkins is extremely extensible, it can be modified and configured to handle practically any aspect of build orchestration and automation.
+
+To learn more about what Jenkins can do, check out:
+
+* The  page for other introductory tutorials.
+* The  for more detailed information about using Jenkins, such as  (in particular ) and the  interface.
+* The  for the latest events, other tutorials and updates.
+
+After completing the tutorial, it's important to clean up your environment to prevent interference with other tutorials you might try later.
+
+To stop the containers and remove associated volumes:
+
+docker compose --profile maven down -v --remove-orphans
+
+This command ensures a clean slate for your next project.
+
+The `--remove-orphans` option instructs Docker Compose to remove any containers that are not defined in the `docker-compose.yml` file but are labeled as belonging to the project.
+This helps in cleaning up any services that might have been started independently but are considered part of the project.
+
+[[appendix]]
+
+'''
++++
+
++++

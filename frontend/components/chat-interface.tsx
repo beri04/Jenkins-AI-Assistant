@@ -25,7 +25,7 @@ export function ChatInterface() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim() || isLoading) return
 
@@ -35,9 +35,58 @@ export function ChatInterface() {
       content: input.trim(),
     }
 
+    // show user message immediately
     setMessages((prev) => [...prev, userMessage])
     setInput("")
     setIsLoading(true)
+
+    try {
+      const sessionId = localStorage.getItem("session_id")
+      const token = localStorage.getItem("token")
+
+      if (!sessionId || !token) {
+        throw new Error("Missing session or token")
+      }
+
+      const res = await fetch(
+        `http://localhost:8000/ai/sessions/${sessionId}/chat`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            message: userMessage.content,
+          }),
+        }
+      )
+
+      if (!res.ok) {
+        throw new Error("Backend error")
+      }
+
+      const data = await res.json()
+
+      const assistantMessage: Message = {
+        id: Date.now().toString(),
+        role: "assistant",
+        content: data.content, // MUST match backend response
+      }
+
+      setMessages((prev) => [...prev, assistantMessage])
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          role: "assistant",
+          content: "Error connecting to backend",
+        },
+      ])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

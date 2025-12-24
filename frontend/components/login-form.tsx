@@ -18,17 +18,52 @@ export function LoginForm() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Add your authentication logic here
-    console.log("Login attempt:", { username })
+    try {
+      // 1. LOGIN
+      const loginRes = await fetch("http://localhost:8000/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      })
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+      if (!loginRes.ok) {
+        throw new Error("Login failed")
+      }
 
-    localStorage.setItem("isLoggedIn", "true")
-    localStorage.setItem("username", username)
-    router.push("/")
+      const loginData = await loginRes.json()
 
-    setIsLoading(false)
+      // assume backend returns { access_token: "..." }
+      localStorage.setItem("token", loginData.access_token)
+
+      // 2. CREATE SESSION
+      const sessionRes = await fetch("http://localhost:8000/ai/sessions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${loginData.access_token}`,
+        },
+      })
+
+      if (!sessionRes.ok) {
+        throw new Error("Session creation failed")
+      }
+
+      const sessionData = await sessionRes.json()
+
+      localStorage.setItem("session_id", sessionData.session_id)
+      localStorage.setItem("mode", sessionData.mode)
+
+      // 3. REDIRECT TO CHAT
+      router.push("/chat")
+    } catch (err) {
+      alert("Login failed. Check credentials or backend.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

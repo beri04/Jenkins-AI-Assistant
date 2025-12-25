@@ -18,21 +18,36 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  useEffect(() => {
-    const token = localStorage.getItem("token")
-    const sessionId = localStorage.getItem("session_id")
 
-    if (!token || !sessionId) {
-      window.location.href = "/login"
-    }
-  }, [])
 
   const [mode, setMode] = useState("professional")
 
-useEffect(() => {
-  const savedMode = localStorage.getItem("mode") 
-  if (savedMode) setMode(savedMode)
-}, [])
+    useEffect(() => {
+      const savedMode = localStorage.getItem("mode") 
+      if (savedMode) setMode(savedMode)
+    }, [])
+    useEffect(() => {
+      const token = localStorage.getItem("token")
+      const sessionId = localStorage.getItem("session_id")
+      if (!token || !sessionId) return
+
+      fetch(`http://localhost:8000/ai/sessions/${sessionId}/messages`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then(res => res.json())
+        .then(data => {
+          setMessages(
+            data.map((m: any) => ({
+              id: crypto.randomUUID(),
+              role: m.role,
+              content: m.content,
+            }))
+          )
+        })
+    }, [])
+
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -193,6 +208,7 @@ useEffect(() => {
       <div className="border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto max-w-3xl px-4 py-4">
           <form onSubmit={handleSubmit} className="flex gap-3">
+            {/* Text input */}
             <input
               type="text"
               value={input}
@@ -201,6 +217,41 @@ useEffect(() => {
               disabled={isLoading}
               className="flex-1 rounded-lg border border-input bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             />
+
+            {/* File upload */}
+            <input
+              type="file"
+              id="file-upload"
+              accept=".txt,.md,.log,.json,.yaml,.yml,.adoc,.groovy"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0]
+                if (!file) return
+
+                const token = localStorage.getItem("token")
+                if (!token) return
+
+                const formData = new FormData()
+                formData.append("file", file)
+
+                const res = await fetch("http://localhost:8000/ai/sessions/${sessionId}/upload-pipeline", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: formData,
+                })
+                if (!res.ok) {
+                  alert("File uploaded successfully")
+                }
+
+                alert("File uploaded and indexed successfully")
+
+              }}
+            />
+
+
+
             <Button
               type="submit"
               disabled={!input.trim() || isLoading}
@@ -208,6 +259,42 @@ useEffect(() => {
             >
               <Send className="h-4 w-4" />
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => document.getElementById("file-upload")?.click()}
+            >
+              Upload
+            </Button>
+            <Button
+              type="button"
+              disabled={isLoading}
+              variant="outline"
+              onClick={async () => {
+                const token = localStorage.getItem("token")
+                if (!token) return
+
+                const res = await fetch("http://localhost:8000/ai/sessions", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                })
+
+                const data = await res.json()
+
+                // reset chat state
+                localStorage.setItem("session_id", data.session_id)
+                localStorage.setItem("mode", data.mode)
+
+                setMode(data.mode)
+                setMessages([]) // 🔥 clear UI
+                messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
+              }}
+            >
+              New Chat
+            </Button>
+
           </form>
         </div>
       </div>

@@ -40,25 +40,7 @@ export function LoginForm() {
       // assume backend returns { access_token: "..." }
       localStorage.setItem("token", loginData.access_token)
 
-      // 2. CREATE SESSION
-      const sessionRes = await fetch("http://localhost:8000/ai/sessions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${loginData.access_token}`,
-        },
-      })
-
-      if (!sessionRes.ok) {
-        throw new Error("Session creation failed")
-      }
-
-      const sessionData = await sessionRes.json()
-
-      localStorage.setItem("session_id", sessionData.session_id)
-      localStorage.setItem("mode", sessionData.mode)
-
-      // 3. REDIRECT TO CHAT
-      router.push("/chat")
+      router.push("/")
     } catch (err) {
       alert("Login failed. Check credentials or backend.")
     } finally {

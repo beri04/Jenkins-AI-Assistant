@@ -7,14 +7,29 @@ import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/sidebar"
 
 export function HeroSection() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [user, setUser] = useState<null | {
+    username: string
+    email: string
+  }>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [showUserTooltip, setShowUserTooltip] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
 
   useEffect(() => {
-    const loggedIn = localStorage.getItem("isLoggedIn") === "true"
-    setIsLoggedIn(loggedIn)
+    const token = localStorage.getItem("token")
+    if (!token) return
+
+    fetch("http://localhost:8000/auth/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("unauthorized")
+        return res.json()
+      })
+      .then((data) => setUser(data))
+      .catch(() => setUser(null))
   }, [])
 
   return (
@@ -107,7 +122,7 @@ export function HeroSection() {
 
       <div className="relative z-10 container mx-auto px-6 py-20 lg:py-24">
         <div className="absolute top-8 right-8">
-          {isLoggedIn ? (
+          {user ? (
             <div className="relative">
               <Link href="/profile">
                 <div
@@ -121,7 +136,8 @@ export function HeroSection() {
               {/* Tooltip with animation */}
               {showUserTooltip && (
                 <div className="absolute top-12 right-0 bg-card/95 backdrop-blur-sm border border-border rounded-lg px-4 py-2.5 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200 whitespace-nowrap z-50">
-                  <p className="text-sm font-medium text-foreground">Jenkins Dev</p>
+                  <p className="text-sm font-medium text-foreground">{user.username}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
                   <p className="text-xs text-muted-foreground">View Profile</p>
                 </div>
               )}

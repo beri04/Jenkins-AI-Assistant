@@ -26,7 +26,7 @@ def get_current_user(request: Request,Authorization: str = Header(None)):
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             user_id = payload.get("user_id")
-
+            print("DECODED PAYLOAD:", payload)
             if not user_id:
                 raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -35,25 +35,26 @@ def get_current_user(request: Request,Authorization: str = Header(None)):
             raise HTTPException(status_code=401, detail="Invalid or expired token")
 
     else:
-        # -------------------------
-        # DEV MODE FALLBACK
-        # -------------------------
-        user_id = 1
-        logging.warning("[AUTH] No token provided → DEV user_id=1")
+        raise HTTPException(
+            status_code=401,
+            detail="Authorization header missing"
+        )
 
     # -------------------------
     # FETCH USER FROM DB
     # -------------------------
     conn = get_db_conn()
-    cur = conn.cursor()
+    try:
+        cur = conn.cursor()
 
-    execute_query(
-        cur,
-        "SELECT id, email, username FROM users WHERE id = %s",
-        (user_id,)
-    )
-    user = cur.fetchone()
-    conn.close()
+        execute_query(
+            cur,
+            "SELECT id, email, username FROM users WHERE id = %s",
+            (user_id,)
+        )
+        user = cur.fetchone()
+    finally:
+        conn.close()
 
     if not user:
         raise HTTPException(status_code=401, detail="User not found")

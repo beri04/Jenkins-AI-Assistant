@@ -243,23 +243,27 @@ def set_mode(session_id:str, body: ModeRequest,request:Request, current_user = D
     }
 
 
-@router.post("/upload-pipeline")
-async def upload_file(file: UploadFile = File(...), current_user = Depends(get_current_user)):
-    allowed_ext = ["", ".groovy", ".txt"]
+@router.post("/sessions/{session_id}/upload-pipeline")
+async def upload_file(session_id:str, file: UploadFile = File(...), current_user = Depends(get_current_user)):
+    allowed_ext = [".groovy",".txt",".md",".log",".json",".yaml",".yml",".adoc",]
     file_name = file.filename
     ext = os.path.splitext(file_name)[1]
 
     if ext not in allowed_ext:
         return {"error":"Only JenkinsFile, .groovy, .txt files allowed"}
     
-    save_path = SAVE_JENKINS_UPLOADS
+    
+    os.makedirs(SAVE_JENKINS_UPLOADS, exist_ok=True)
 
-    with open(save_path, "wb", encoding="utf-8") as f:
+    save_path = SAVE_JENKINS_UPLOADS / file_name
+
+    with open(save_path, "wb") as f:
         f.write(await file.read())
 
     return{"status":"Uploaded",
+           "session_id":session_id,
            "filename":file_name,
-           "path":save_path        
+           "path":str(save_path)        
     }
 
 @ router.get("/sessions/{session_id}/messages")
@@ -300,7 +304,6 @@ def get_messages(session_id: str,current_user = Depends(get_current_user)):
         }
         for r in rows
     ]
-    
 # --------------------------------------------- OLD CODE ----------------------------------------------
 # router = APIRouter()
 
@@ -461,8 +464,8 @@ def get_messages(session_id: str,current_user = Depends(get_current_user)):
 #         "mode":session_mode,
 #         "user":current_user.username
 #     }
-# from jose import jwt
-# from src.database.login import SECRET_KEY, ALGORITHM
-# if __name__ == "__main__":
-#     token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3NjU1NDU0MTl9._ZKguWppGNIeIxbWxHns8P_MyfCZfk35Lg48GdFoFwc"
-#     print(jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM]))
+from jose import jwt
+from src.database.access_tokens import SECRET_KEY, ALGORITHM
+if __name__ == "__main__":
+    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3NjY2NTQ4MTJ9.jt92dQH9bXHYERl6cm0-So2byptvaMnawBeTyYnajgU"
+    print(jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM]))

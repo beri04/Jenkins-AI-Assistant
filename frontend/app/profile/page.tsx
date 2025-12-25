@@ -4,18 +4,40 @@ import { PageTransition } from "@/components/page-transition"
 import { Button } from "@/components/ui/button"
 import { User, Mail, Calendar, LogOut } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 export default function ProfilePage() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [user, setUser] = useState<null | {
+    username: string
+    email: string
+  }>(null)
   const router = useRouter()
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (!token) {
+      router.push("/login")
+      return
+    }
 
+    fetch("http://localhost:8000/auth/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized")
+        return res.json()
+      })
+      .then((data) => setUser(data))
+      .catch(() => router.push("/login"))
+  }, [])
   const handleLogout = () => {
-    // Clear login state
-    localStorage.removeItem("isLoggedIn")
-    localStorage.removeItem("username")
-    // Redirect to home
+    localStorage.removeItem("token")
+    localStorage.removeItem("session_id")
+    localStorage.removeItem("mode")
+
     router.push("/")
   }
 
@@ -61,7 +83,9 @@ export default function ProfilePage() {
                   <User className="w-10 h-10 text-primary" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground mb-1">Jenkins Dev</h1>
+                  <h1 className="text-3xl font-bold text-foreground mb-1">
+                    {user?.username}
+                  </h1>
                   <p className="text-muted-foreground">Developer Account</p>
                 </div>
               </div>
@@ -72,7 +96,9 @@ export default function ProfilePage() {
                   <User className="w-5 h-5 text-primary" />
                   <div>
                     <p className="text-xs text-muted-foreground">Username</p>
-                    <p className="text-sm font-medium text-foreground">jenkinsdev</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {user?.username}
+                    </p>
                   </div>
                 </div>
 
@@ -80,7 +106,7 @@ export default function ProfilePage() {
                   <Mail className="w-5 h-5 text-primary" />
                   <div>
                     <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="text-sm font-medium text-foreground">dev@jenkins.ai</p>
+                    <p className="text-sm font-medium text-foreground">{user?.email}</p>
                   </div>
                 </div>
 

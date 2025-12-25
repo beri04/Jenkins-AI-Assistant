@@ -20,10 +20,23 @@ class RAG_ENGINE:
             print("FAISS Retrieval Error:", e)
             return []
 
+    def get_best_score(self,chunks):
+        if not chunks :
+            return 0.0
+        return max(c.get('score',0.0) for c in chunks)
+    
+
+
+    def is_debugging_query(self,query: str)->bool:
+        keywords = ["error", "failed", "exception", "traceback",
+        "not working", "pipeline failed",
+        "jenkinsfile error", "build failed"]
+        q = query.lower()
+        return any(k in q for k in keywords)
     # ---------------------------
     # PROMPT BUILDER
     # ---------------------------
-    def build_prompt(self, context, query, mode):
+    def build_prompt(self, context, query, mode,):
         MODE_MAP = {
             "friendly": prompt.FRIENDLY_PROMPT,
             "professional": prompt.PROFESSIONAL_PROMPT,
@@ -33,9 +46,8 @@ class RAG_ENGINE:
         }
 
         system_prompt = MODE_MAP.get(mode, prompt.PROFESSIONAL_PROMPT)
-
+        
         user_prompt = f"""
-            use only the context below to answer the questions
             Context:
             {context}
 
@@ -43,6 +55,8 @@ class RAG_ENGINE:
             {query}
 
             """
+        
+        user_prompt = query
         return system_prompt, user_prompt
     # ---------------------------
     # FINAL ANSWER
@@ -50,10 +64,43 @@ class RAG_ENGINE:
     def answer(self, query, history=None, top_k=5, mode="professional"):
         # 1) Retrieve context
         chunks = self.retrieve(query, top_k)
+        print("Chunks used:", len(chunks))
         context = "\n\n".join([c["text"] for c in chunks]) if chunks else "No relevant context found."
+        best_score = self.get_best_score(chunks)
 
+        debugging = self.is_debugging_query(query)
+
+        RAG_THRESHOLD = 0.45
+
+        if debugging:
+            if best_score>=RAG_THRESHOLD:
+                use_context = True
+            else:
+                # system_prompt = .get(mode, prompt.PROFESSIONAL_PROMPT)
+                user_prompt = (
+                    "The user is facing a Jenkins issue but has not provided logs.\n"
+                    "Politely ask for the exact error or pipeline logs.\n\n"
+                    f"User question: {query}"
+                )
+                return self.llm.generate(system_prompt,user_prompt),{
+                    "path":"debug-no-context"
+                }
+        else:
+            use_context = False
+
+        MODE_MAP = {
+            "friendly": prompt.FRIENDLY_PROMPT,
+            "professional": prompt.PROFESSIONAL_PROMPT,
+            "rude": prompt.RUDE_DEVOPS_PROMPT,
+            "teaching": prompt.TEACHING_PROMPT,
+            "hinglish": prompt.HINGLISH_PROMPT,
+        }
         # 2) Build initial prompt
-        system_prompt, user_prompt = self.build_prompt(context, query, mode)
+        if use_context:
+            system_prompt, user_prompt = self.build_prompt(context, query, mode)
+        else:
+            system_prompt = MODE_MAP.get(mode, prompt.PROFESSIONAL_PROMPT)
+            user_prompt = query
 
         # 3) Add memory support
         if history:
@@ -65,8 +112,10 @@ class RAG_ENGINE:
         
         meta = {
             "mode": mode,
+            "debugging":debugging,
             "top_k": top_k,
             "chunks_used": len(chunks),
+            "best_score":best_score,
             "sources": [
                 c.get("source") for c in chunks if isinstance(c, dict)
             ]

@@ -3,6 +3,7 @@
 from fastapi import FastAPI, Request
 from src.api.auth_router import router as auth_router
 from src.api.router import router as ai_router  # your AI endpoints
+# from src.api.upload_router import router as upload_router
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,6 +28,7 @@ app.add_middleware(
 # -------------------------------
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(ai_router, prefix="/ai", tags=["Jenkins AI"])
+# app.include_router(upload_router, prefix="/ai", tags=["Uploads"])
 
 # -------------------------------
 # Health Check (Optional)

@@ -8,6 +8,7 @@ from src.database.pass_safe import hash_password, verify_password
 from src.database.access_tokens import create_access_token
 from src.database.token_resp import TokenResponse
 from src.database.login import LoginRequest
+from src.authorization.deps import get_current_user
 
 router = APIRouter()
 
@@ -40,3 +41,11 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     token = create_access_token({"user_id": user.id})
 
     return TokenResponse(access_token=token,token_type="bearer")
+
+@router.get("/me")
+def get_me(current_user = Depends(get_current_user)):
+    return {
+        "id": current_user["id"],
+        "email":current_user["email"],
+        "username":current_user["username"]
+    }

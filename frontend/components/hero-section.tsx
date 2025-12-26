@@ -5,32 +5,17 @@ import { Terminal, User } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/sidebar"
+import { useAuth } from "@/context/useAuth"
 
 export function HeroSection() {
-  const [user, setUser] = useState<null | {
-    username: string
-    email: string
-  }>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [showUserTooltip, setShowUserTooltip] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
+  const { user, loading } = useAuth()
 
-  useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (!token) return
-
-    fetch("http://localhost:8000/auth/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("unauthorized")
-        return res.json()
-      })
-      .then((data) => setUser(data))
-      .catch(() => setUser(null))
-  }, [])
+  if (loading) {
+    return null
+  }
 
   return (
     <section

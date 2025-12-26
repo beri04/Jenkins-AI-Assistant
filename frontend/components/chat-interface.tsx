@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Send, X } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
+import { useAuth } from "@/context/useAuth"
+import { useRouter } from "next/navigation"
 
 type Message = {
   id: string
@@ -15,12 +17,20 @@ type Message = {
 }
 
 export function ChatInterface() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-
+  
   const [mode, setMode] = useState("professional")
+    useEffect(() => {
+      if (!loading && !user) {
+        router.replace("/login")
+      }
+    }, [loading, user, router])
+
 
     useEffect(() => {
       const savedMode = localStorage.getItem("mode") 
@@ -118,7 +128,11 @@ export function ChatInterface() {
       setIsLoading(false)
     }
   }
-
+  
+  if (loading) {
+    return null
+  }
+  
   return (
     <div className="flex h-screen flex-col bg-background">
       <div className="flex-1 overflow-y-auto">

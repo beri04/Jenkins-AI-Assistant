@@ -6,41 +6,20 @@ import { User, Mail, Calendar, LogOut } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/context/useAuth"
 
 export default function ProfilePage() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
-  const [user, setUser] = useState<null | {
-    username: string
-    email: string
-  }>(null)
   const router = useRouter()
-  useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (!token) {
-      router.push("/login")
-      return
-    }
-
-    fetch("http://localhost:8000/auth/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Unauthorized")
-        return res.json()
-      })
-      .then((data) => setUser(data))
-      .catch(() => router.push("/login"))
-  }, [])
+  const { user, loading, logout } = useAuth()
   const handleLogout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("session_id")
-    localStorage.removeItem("mode")
-
+    logout()
     router.push("/")
   }
 
+  if (loading) {
+    return null
+  }
   return (
     <PageTransition>
       <div className="min-h-screen bg-background relative overflow-hidden">

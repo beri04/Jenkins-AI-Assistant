@@ -304,6 +304,21 @@ def get_messages(session_id: str,current_user = Depends(get_current_user)):
         }
         for r in rows
     ]
+
+@router.delete("/sessions/{session_id}")
+def delete_chat(session_id: str, current_user = Depends(get_current_user)):
+    conn = get_db_conn()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        delete from sessions where id = %s and user_id = %s;
+        
+        """,(session_id,current_user['id'])
+    )
+    conn.commit()
+    conn.close()
+    return{"detail":"Session deleted successfully"}
 # --------------------------------------------- OLD CODE ----------------------------------------------
 # router = APIRouter()
 

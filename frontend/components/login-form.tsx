@@ -7,12 +7,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/context/useAuth"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { login } = useAuth()
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,8 +41,7 @@ export function LoginForm() {
       const loginData = await loginRes.json()
 
       // assume backend returns { access_token: "..." }
-      localStorage.setItem("token", loginData.access_token)
-
+      await login(loginData.access_token)
       router.push("/")
     } catch (err) {
       alert("Login failed. Check credentials or backend.")

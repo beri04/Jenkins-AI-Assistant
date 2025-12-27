@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import { Home } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Send, X } from "lucide-react"
@@ -15,6 +15,12 @@ type Message = {
   role: "user" | "assistant"
   content: string
 }
+type Session = {
+  session_id: string
+  created_at: string
+  mode: string
+}
+
 
 export function ChatInterface() {
   const { user, loading } = useAuth()
@@ -22,8 +28,9 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-
-  
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
+  const [sessions, setSessions] = useState<Session[]>([])
+  const [showSidebar, setShowSidebar] = useState(true)
   const [mode, setMode] = useState("professional")
     useEffect(() => {
       if (!loading && !user) {
@@ -36,34 +43,106 @@ export function ChatInterface() {
       const savedMode = localStorage.getItem("mode") 
       if (savedMode) setMode(savedMode)
     }, [])
-    useEffect(() => {
-      const token = localStorage.getItem("token")
-      const sessionId = localStorage.getItem("session_id")
-      if (!token || !sessionId) return
-
-      fetch(`http://localhost:8000/ai/sessions/${sessionId}/messages`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then(res => res.json())
-        .then(data => {
-          setMessages(
-            data.map((m: any) => ({
-              id: crypto.randomUUID(),
-              role: m.role,
-              content: m.content,
-            }))
-          )
-        })
-    }, [])
-
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const createNewSession = async () => {
+    const token = localStorage.getItem("token")
+    if (!token) return
+
+    const res = await fetch("http://localhost:8000/ai/sessions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!res.ok) throw new Error("Failed to create session")
+
+    const data = await res.json()
+
+    setActiveSessionId(data.session_id)
+    setMode(data.mode)
+    setMessages([])
+  }
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+  useEffect(() => {
+    if (!loading && user) {
+      createNewSession()
+    }
+  }, [loading, user])
+  
+  
+  useEffect(() => {
+  const fetchSessions = async () => {
+    const token = localStorage.getItem("token")
+    if (!token) return
+
+    const res = await fetch("http://localhost:8000/ai/sessions", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!res.ok) return
+
+    const data = await res.json()
+    setSessions(data)
+  }
+
+  if (!loading && user) {
+    fetchSessions()
+  }
+}, [loading, user])
+
+  const loadSession = async (sessionId: string) => {
+    const token = localStorage.getItem("token")
+    if (!token) return
+
+    setActiveSessionId(sessionId)
+
+    const res = await fetch(
+      `http://localhost:8000/ai/sessions/${sessionId}/messages`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+
+    if (!res.ok) return
+
+    const data = await res.json()
+
+    setMessages(
+      data.map((m: any) => ({
+        id: crypto.randomUUID(),
+        role: m.role,
+        content: m.content,
+      }))
+    )
+  }
+  const deleteSession = async (sessionId: string) => {
+  const token = localStorage.getItem("token")
+  if (!token) return
+
+  await fetch(`http://localhost:8000/ai/sessions/${sessionId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  // Remove from UI
+  setSessions((prev) => prev.filter((s) => s.session_id !== sessionId))
+
+  // If deleted session was active → start fresh
+  if (activeSessionId === sessionId) {
+    createNewSession()
+  }
+}
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -81,15 +160,17 @@ export function ChatInterface() {
     setIsLoading(true)
 
     try {
-      const sessionId = localStorage.getItem("session_id")
-      const token = localStorage.getItem("token")
+      if (!activeSessionId) {
+        throw new Error("No active session")
+      }
 
-      if (!sessionId || !token) {
-        throw new Error("Missing session or token")
+      const token = localStorage.getItem("token")
+      if (!token) {
+        throw new Error("Missing token")
       }
 
       const res = await fetch(
-        `http://localhost:8000/ai/sessions/${sessionId}/chat`,
+        `http://localhost:8000/ai/sessions/${activeSessionId}/chat`,
         {
           method: "POST",
           headers: {
@@ -134,182 +215,222 @@ export function ChatInterface() {
   }
   
   return (
-    <div className="flex h-screen flex-col bg-background">
-      <div className="flex-1 overflow-y-auto">
+    <div className="flex h-screen bg-background">
+      {/* ===== SIDEBAR ===== */}
+      {showSidebar && (
+        <div className="w-64 border-r border-border p-4 flex flex-col">
+          <Button
+            onClick={createNewSession}
+            className="mb-4 w-full"
+          >
+            + New Chat
+          </Button>
 
-        <div className="mx-auto max-w-3xl px-4 py-8">
-          <div className="mb-4 flex justify-end items-center gap-2">
+          <div className="flex-1 overflow-y-auto space-y-1">
+            {sessions.map((s, index) => (
+              <div
+                key={s.session_id}
+                className={`flex items-center justify-between px-3 py-2 rounded ${
+                  activeSessionId === s.session_id
+                    ? "bg-primary/20"
+                    : "hover:bg-muted"
+                }`}
+              >
+                <button
+                  onClick={() => loadSession(s.session_id)}
+                  className="flex-1 text-left text-sm"
+                >
+                  Chat {sessions.length - index}
+                </button>
+
+                <button
+                  onClick={(e) =>{
+                  e.stopPropagation()
+                  if (confirm("Delete this chat?")) {
+                    deleteSession(s.session_id)
+                  }
+                }}
+                className="ml-2 text-muted-foreground hover:text-red-500"
+                title="Delete chat"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      
+      {/* ===== CHAT AREA ===== */}
+      <div className="flex flex-1 flex-col">
+        <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-3xl px-4 py-8">
+            <button
+              onClick={() => setShowSidebar((prev) => !prev)}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              {showSidebar ? "Hide chats" : "Show chats"}
+            </button>
+            <div className="mb-4 flex justify-between items-center">
+          {/* LEFT: Home + Sidebar toggle */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push("/")}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <Home className="h-4 w-4" />
+              Home
+            </button>
+
+            <button
+              onClick={() => setShowSidebar((prev) => !prev)}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              {showSidebar ? "Hide chats" : "Show chats"}
+            </button>
+          </div>
+
+          {/* RIGHT: Mode selector */}
+          <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Mode</span>
             <select
               value={mode}
               onChange={async (e) => {
                 const newMode = e.target.value
                 setMode(newMode)
-                localStorage.setItem("mode", newMode)
 
-                const sessionId = localStorage.getItem("session_id")
                 const token = localStorage.getItem("token")
+                if (!activeSessionId || !token) return
 
-                if (!sessionId || !token) {
-                  console.error("Missing session or token")
-                  return
-                }
                 await fetch(
-                  `http://localhost:8000/ai/sessions/${sessionId}/set-mode`,
+                  `http://localhost:8000/ai/sessions/${activeSessionId}/set-mode`,
                   {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
                       Authorization: `Bearer ${token}`,
                     },
-                    body: JSON.stringify
-                    ({ 
-                      mode: newMode
-                     }),
+                    body: JSON.stringify({ mode: newMode }),
                   }
                 )
               }}
               className="rounded border px-2 py-1 text-sm bg-card"
             >
-
               <option value="professional">Professional</option>
               <option value="friendly">Friendly</option>
               <option value="teaching">Teaching</option>
               <option value="rude">Rude DevOps</option>
             </select>
           </div>
+        </div>
 
-          {messages.length === 0 ? (
-            <div className="flex h-full items-center justify-center text-center">
-              <div className="space-y-3">
-                <h2 className="text-2xl font-semibold text-foreground">Jenkins AI Assistant</h2>
-                <p className="text-muted-foreground">Ask me anything about your Jenkinsfiles and CI/CD pipelines</p>
+            {/* Messages */}
+            {messages.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-center">
+                <div className="space-y-3">
+                  <h2 className="text-2xl font-semibold text-foreground">
+                    Jenkins AI Assistant
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Ask me anything about your Jenkinsfiles and CI/CD pipelines
+                  </p>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <AnimatePresence initial={false}>
-                {messages.map((message) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -12 }}
-                    transition={{
-                      duration: 0.3,
-                      ease: "easeOut",
-                    }}
-                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-lg px-4 py-3 ${
+            ) : (
+              <div className="space-y-6">
+                <AnimatePresence initial={false}>
+                  {messages.map((message) => (
+                    <motion.div
+                      key={message.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -12 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className={`flex ${
                         message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-card border border-border text-card-foreground"
+                          ? "justify-end"
+                          : "justify-start"
                       }`}
                     >
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-              <div ref={messagesEndRef} />
-            </div>
-          )}
+                      <div
+                        className={`max-w-[80%] rounded-lg px-4 py-3 ${
+                          message.role === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-card border border-border text-card-foreground"
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                          {message.content}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto max-w-3xl px-4 py-4">
-          <form onSubmit={handleSubmit} className="flex gap-3">
-            {/* Text input */}
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about your Jenkinsfile…"
-              disabled={isLoading}
-              className="flex-1 rounded-lg border border-input bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            />
+        {/* ===== INPUT AREA ===== */}
+        <div className="border-t border-border bg-background/95 backdrop-blur">
+          <div className="mx-auto max-w-3xl px-4 py-4">
+            <form onSubmit={handleSubmit} className="flex gap-3">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask about your Jenkinsfile…"
+                disabled={isLoading}
+                className="flex-1 rounded-lg border border-input bg-card px-4 py-3 text-sm"
+              />
 
-            {/* File upload */}
-            <input
-              type="file"
-              id="file-upload"
-              accept=".txt,.md,.log,.json,.yaml,.yml,.adoc,.groovy"
-              className="hidden"
-              onChange={async (e) => {
-                const file = e.target.files?.[0]
-                if (!file) return
+              <input
+                type="file"
+                id="file-upload"
+                accept=".txt,.md,.log,.json,.yaml,.yml,.adoc,.groovy"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file || !activeSessionId) return
 
-                const token = localStorage.getItem("token")
-                if (!token) return
+                  const token = localStorage.getItem("token")
+                  if (!token) return
 
-                const formData = new FormData()
-                formData.append("file", file)
+                  const formData = new FormData()
+                  formData.append("file", file)
 
-                const res = await fetch("http://localhost:8000/ai/sessions/${sessionId}/upload-pipeline", {
-                  method: "POST",
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                  body: formData,
-                })
-                if (!res.ok) {
-                  alert("File uploaded successfully")
+                  await fetch(
+                    `http://localhost:8000/ai/sessions/${activeSessionId}/upload-pipeline`,
+                    {
+                      method: "POST",
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: formData,
+                    }
+                  )
+
+                  alert("File uploaded and indexed successfully")
+                }}
+              />
+
+              <Button type="submit" disabled={!input.trim() || isLoading}>
+                <Send className="h-4 w-4" />
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  document.getElementById("file-upload")?.click()
                 }
-
-                alert("File uploaded and indexed successfully")
-
-              }}
-            />
-
-
-
-            <Button
-              type="submit"
-              disabled={!input.trim() || isLoading}
-              className="bg-primary text-primary-foreground hover:bg-green-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => document.getElementById("file-upload")?.click()}
-            >
-              Upload
-            </Button>
-            <Button
-              type="button"
-              disabled={isLoading}
-              variant="outline"
-              onClick={async () => {
-                const token = localStorage.getItem("token")
-                if (!token) return
-
-                const res = await fetch("http://localhost:8000/ai/sessions", {
-                  method: "POST",
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                })
-
-                const data = await res.json()
-
-                // reset chat state
-                localStorage.setItem("session_id", data.session_id)
-                localStorage.setItem("mode", data.mode)
-
-                setMode(data.mode)
-                setMessages([]) // 🔥 clear UI
-                messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
-              }}
-            >
-              New Chat
-            </Button>
-
-          </form>
+              >
+                Upload
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

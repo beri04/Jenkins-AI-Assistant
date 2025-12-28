@@ -36,7 +36,7 @@ class RAG_ENGINE:
     # ---------------------------
     # PROMPT BUILDER
     # ---------------------------
-    def build_prompt(self, context, query, mode,):
+    def build_prompt(self, context, query, mode,extra_context=""):
         MODE_MAP = {
             "friendly": prompt.FRIENDLY_PROMPT,
             "professional": prompt.PROFESSIONAL_PROMPT,
@@ -48,81 +48,69 @@ class RAG_ENGINE:
         system_prompt = MODE_MAP.get(mode, prompt.PROFESSIONAL_PROMPT)
         
         user_prompt = f"""
+
             Context:
             {context}
-
-            Question:
+            
+            Uploaded files context(User-Specific):
+            {extra_context}
+            
+            User Question:
             {query}
 
             """
         
-        user_prompt = query
         return system_prompt, user_prompt
     # ---------------------------
     # FINAL ANSWER
     # ---------------------------
-    def answer(self, query, history=None, top_k=5, mode="professional"):
-        # 1) Retrieve context
+    def answer(self, query, history=None, top_k=5, mode="professional", extra_context=""):
+        # 1) Retrieve Jenkins documentation context
         chunks = self.retrieve(query, top_k)
         print("Chunks used:", len(chunks))
-        context = "\n\n".join([c["text"] for c in chunks]) if chunks else "No relevant context found."
-        best_score = self.get_best_score(chunks)
 
-        debugging = self.is_debugging_query(query)
+        context = "\n\n".join([c["text"] for c in chunks]) if chunks else ""
+        best_score = self.get_best_score(chunks)
 
         RAG_THRESHOLD = 0.45
 
-        if debugging:
-            if best_score>=RAG_THRESHOLD:
-                use_context = True
-            else:
-                # system_prompt = .get(mode, prompt.PROFESSIONAL_PROMPT)
-                user_prompt = (
-                    "The user is facing a Jenkins issue but has not provided logs.\n"
-                    "Politely ask for the exact error or pipeline logs.\n\n"
-                    f"User question: {query}"
-                )
-                return self.llm.generate(system_prompt,user_prompt),{
-                    "path":"debug-no-context"
-                }
-        else:
-            use_context = False
+        # 2) Decide context usage
+        use_doc_context = best_score >= RAG_THRESHOLD
+        use_upload_context = bool(extra_context.strip())
 
-        MODE_MAP = {
-            "friendly": prompt.FRIENDLY_PROMPT,
-            "professional": prompt.PROFESSIONAL_PROMPT,
-            "rude": prompt.RUDE_DEVOPS_PROMPT,
-            "teaching": prompt.TEACHING_PROMPT,
-            "hinglish": prompt.HINGLISH_PROMPT,
-        }
-        # 2) Build initial prompt
-        if use_context:
-            system_prompt, user_prompt = self.build_prompt(context, query, mode)
-        else:
-            system_prompt = MODE_MAP.get(mode, prompt.PROFESSIONAL_PROMPT)
-            user_prompt = query
+        doc_context = context if use_doc_context else ""
 
-        # 3) Add memory support
+        # 3) ALWAYS build prompt (uploads must never be dropped)
+        system_prompt, user_prompt = self.build_prompt(
+            context=doc_context,
+            query=query,
+            mode=mode,
+            extra_context=extra_context
+        )
+
+        # 4) Add chat history (memory)
         if history:
             try:
                 past = history.as_string()
                 user_prompt = past + "\n\n" + user_prompt
             except:
                 pass
-        
+
         meta = {
             "mode": mode,
-            "debugging":debugging,
             "top_k": top_k,
             "chunks_used": len(chunks),
-            "best_score":best_score,
+            "best_score": best_score,
+            "used_doc_context": use_doc_context,
+            "used_upload_context": use_upload_context,
             "sources": [
                 c.get("source") for c in chunks if isinstance(c, dict)
-            ]
+            ],
         }
 
-        # 4) Call Groq
-        return self.llm.generate(system_prompt, user_prompt),meta
+        # 5) Call LLM
+        return self.llm.generate(system_prompt, user_prompt), meta
+
     
 
 

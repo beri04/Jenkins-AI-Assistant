@@ -60,7 +60,7 @@ export function LoginForm() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium text-foreground">
-              Username
+              Email
             </Label>
             <Input
               id="email"

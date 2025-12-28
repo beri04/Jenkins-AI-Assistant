@@ -1,0 +1,10 @@
+
+    Compliance Report
+    ----------------
+    Overall: Compliant
+
+    Details:
+    - Weight Label: Missing
+- Price Label: Correct
+- Manufacturer Info: Correct
+    

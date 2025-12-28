@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from src.database.get_db import get_db_conn
 from src.database.chat_msg import ChatMessage
 from src.database.db_logging import execute_query
+from src.file_upload.upload_processor import process_uploaded_file,detect_file
 import logging
 import time
 router = APIRouter()
@@ -80,7 +81,17 @@ def chat_with_ai(session_id: str, body: ChatMessage, current_user = Depends(get_
         (session_id,)
     )
     rows = cur.fetchall()
+
     history = [{"role": r[0], "content": r[1]} for r in rows]
+    # --------------------------------------------------
+    # Retrieve the text frim document
+    # --------------------------------------------------
+    cur.execute("""
+        select content from uploaded_chunks where session_id = %s order by created_at desc limit 20
+""",(session_id,))
+    
+    uploaded_chunks = [row[0] for row in cur.fetchall()]
+    uploaded_context = "\n\n".join(uploaded_chunks)
 
     # --------------------------------------------------
     # 4. RUN RAG ENGINE
@@ -90,7 +101,8 @@ def chat_with_ai(session_id: str, body: ChatMessage, current_user = Depends(get_
         query=user_msg,
         history=history,
         top_k=5,
-        mode=session_mode
+        mode=session_mode,
+        extra_context=uploaded_context
     )
     rag_end = time.time()
 
@@ -250,20 +262,62 @@ async def upload_file(session_id:str, file: UploadFile = File(...), current_user
     ext = os.path.splitext(file_name)[1]
 
     if ext not in allowed_ext:
-        return {"error":"Only JenkinsFile, .groovy, .txt files allowed"}
+        # return {"error":"Only JenkinsFile, .groovy, .txt files allowed"}
+        raise HTTPException(
+            status_code=400,
+            detail="unsupported file type"
+        )
     
+    raw_bytes = await file.read()
+
+    try:
+        raw_content = raw_bytes.decode("utf-8")
+    except UnicodeDecodeError:
+        raise HTTPException(
+            status_code=400,
+            detail="File must be UTF-8 encoded"
+        )
+
+    try:
+        parsed = process_uploaded_file(file_name, raw_content)
+        chunks = parsed["chunks"]
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     
+    conn = get_db_conn()
+    cur = conn.cursor()
+
+    for chunk in chunks:
+        cur.execute("""
+            insert into uploaded_chunks (session_id, content, source)
+            Values(%s, %s, %s)
+
+        """,
+            (session_id, chunk, parsed["type"])
+        )
+    
+    conn.commit()
+    conn.close()
+
     os.makedirs(SAVE_JENKINS_UPLOADS, exist_ok=True)
 
     save_path = SAVE_JENKINS_UPLOADS / file_name
 
     with open(save_path, "wb") as f:
-        f.write(await file.read())
+        f.write(raw_bytes)
+
+    print(f"[UPLOAD] session={session_id}")
+    print(f"[UPLOAD] file={file_name}")
+    print(f"[UPLOAD] type={parsed['type']}")
+    # print(f"[UPLOAD] length={len(parsed['content'])}")
+
 
     return{"status":"Uploaded",
            "session_id":session_id,
            "filename":file_name,
-           "path":str(save_path)        
+           "path":str(save_path),
+           "file_type": parsed["type"],
+            "saved_path": str(save_path)
     }
 
 @ router.get("/sessions/{session_id}/messages")

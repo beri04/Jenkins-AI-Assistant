@@ -32,6 +32,11 @@ export function ChatInterface() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [showSidebar, setShowSidebar] = useState(true)
   const [mode, setMode] = useState("professional")
+  const [uploadedFile, setUploadedFile] = useState<{
+    name: string
+    content: string
+  } | null>(null)
+
     useEffect(() => {
       if (!loading && !user) {
         router.replace("/login")
@@ -125,24 +130,25 @@ export function ChatInterface() {
     )
   }
   const deleteSession = async (sessionId: string) => {
-  const token = localStorage.getItem("token")
-  if (!token) return
+    const token = localStorage.getItem("token")
+    if (!token) return
 
-  await fetch(`http://localhost:8000/ai/sessions/${sessionId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
+    await fetch(`http://localhost:8000/ai/sessions/${sessionId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
 
-  // Remove from UI
-  setSessions((prev) => prev.filter((s) => s.session_id !== sessionId))
+    // Remove from UI
+    setSessions((prev) => prev.filter((s) => s.session_id !== sessionId))
 
-  // If deleted session was active → start fresh
-  if (activeSessionId === sessionId) {
-    createNewSession()
+    // If deleted session was active → start fresh
+    if (activeSessionId === sessionId) {
+      createNewSession()
+    }
   }
-}
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -324,7 +330,29 @@ export function ChatInterface() {
             </select>
           </div>
         </div>
+            {/* ===== FILE PREVIEW ===== */}
+            {uploadedFile && (
+              <div className="mx-auto max-w-3xl px-4 mb-4">
+                <div className="rounded-lg border bg-card p-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-foreground">
+                      📎 {uploadedFile.name}
+                    </span>
+                    <button
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                      onClick={() => setUploadedFile(null)}
+                    >
+                      Remove
+                    </button>
+                  </div>
 
+                  <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap text-muted-foreground text-xs">
+                    {uploadedFile.content}
+                  </pre>
+                </div>
+              </div>
+            )}
+    
             {/* Messages */}
             {messages.length === 0 ? (
               <div className="flex h-full items-center justify-center text-center">
@@ -395,6 +423,19 @@ export function ChatInterface() {
                   const file = e.target.files?.[0]
                   if (!file || !activeSessionId) return
 
+                  // 🔹 1. Read file for preview (CLIENT SIDE)
+                  const reader = new FileReader()
+                  reader.onload = () => {
+                    const text = reader.result as string
+                    setUploadedFile({
+                      name: file.name,
+                      content: text.slice(0, 1500), // limit preview
+                    })
+                  }
+                  reader.readAsText(file)
+                  
+                  
+                  // 🔹 2. Upload to backend (EXISTING LOGIC)
                   const token = localStorage.getItem("token")
                   if (!token) return
 

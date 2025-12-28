@@ -54,7 +54,7 @@ export function ChatInterface() {
     const token = localStorage.getItem("token")
     if (!token) return
 
-    const res = await fetch("http://localhost:8000/ai/sessions", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ai/sessions`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -73,11 +73,6 @@ export function ChatInterface() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
-  useEffect(() => {
-    if (!loading && user) {
-      createNewSession()
-    }
-  }, [loading, user])
   
   
   useEffect(() => {
@@ -85,7 +80,7 @@ export function ChatInterface() {
     const token = localStorage.getItem("token")
     if (!token) return
 
-    const res = await fetch("http://localhost:8000/ai/sessions", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ai/sessions`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -95,6 +90,11 @@ export function ChatInterface() {
 
     const data = await res.json()
     setSessions(data)
+    if (data.length > 0) {
+      setActiveSessionId(data[0].session_id)
+      loadSession(data[0].session_id)
+    }
+
   }
 
   if (!loading && user) {
@@ -109,7 +109,7 @@ export function ChatInterface() {
     setActiveSessionId(sessionId)
 
     const res = await fetch(
-      `http://localhost:8000/ai/sessions/${sessionId}/messages`,
+      `${process.env.NEXT_PUBLIC_API_URL}/ai/sessions/${sessionId}/messages`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -133,7 +133,7 @@ export function ChatInterface() {
     const token = localStorage.getItem("token")
     if (!token) return
 
-    await fetch(`http://localhost:8000/ai/sessions/${sessionId}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ai/sessions/${sessionId}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -176,7 +176,7 @@ export function ChatInterface() {
       }
 
       const res = await fetch(
-        `http://localhost:8000/ai/sessions/${activeSessionId}/chat`,
+        `${process.env.NEXT_PUBLIC_API_URL}/ai/sessions/${activeSessionId}/chat`,
         {
           method: "POST",
           headers: {
@@ -272,23 +272,19 @@ export function ChatInterface() {
       <div className="flex flex-1 flex-col">
         <div className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl px-4 py-8">
-            <button
-              onClick={() => setShowSidebar((prev) => !prev)}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              {showSidebar ? "Hide chats" : "Show chats"}
-            </button>
             <div className="mb-4 flex justify-between items-center">
           {/* LEFT: Home + Sidebar toggle */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            {/* HOME BUTTON – BIG & LEFT */}
             <button
               onClick={() => router.push("/")}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground"
             >
-              <Home className="h-4 w-4" />
+              <Home className="h-6 w-6" />
               Home
             </button>
 
+            {/* SHOW / HIDE CHATS – SMALLER */}
             <button
               onClick={() => setShowSidebar((prev) => !prev)}
               className="text-xs text-muted-foreground hover:text-foreground"
@@ -310,7 +306,7 @@ export function ChatInterface() {
                 if (!activeSessionId || !token) return
 
                 await fetch(
-                  `http://localhost:8000/ai/sessions/${activeSessionId}/set-mode`,
+                  `${process.env.NEXT_PUBLIC_API_URL}/ai/sessions/${activeSessionId}/set-mode`,
                   {
                     method: "POST",
                     headers: {
@@ -443,7 +439,7 @@ export function ChatInterface() {
                   formData.append("file", file)
 
                   await fetch(
-                    `http://localhost:8000/ai/sessions/${activeSessionId}/upload-pipeline`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/ai/sessions/${activeSessionId}/upload-pipeline`,
                     {
                       method: "POST",
                       headers: {

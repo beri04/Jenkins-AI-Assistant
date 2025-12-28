@@ -23,7 +23,7 @@ export default function ChatPage() {
     }
 
     // create session lazily
-    fetch("http://localhost:8000/ai/sessions", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/ai/sessions`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

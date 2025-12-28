@@ -15,7 +15,6 @@ router = APIRouter()
 @router.post("/signup")
 def signup_user(payload: SignupRequest, db: Session = Depends(get_db)):
 
-    print("DEBUG → Received password:", payload.password)
     
     user_exists = db.query(Users).filter(Users.email == payload.email).first()
 

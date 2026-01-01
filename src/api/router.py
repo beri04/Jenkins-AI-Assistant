@@ -25,7 +25,13 @@ modes = {}  # session_id → mode
 def chat_with_ai(session_id: str, body: ChatMessage, current_user = Depends(get_current_user)):
     start_time = time.time()
     
-    logging.info(f"[CHAT] User={current_user["id"]} | Session={session_id} | Msg='{body.content}'")
+    user_id = current_user["id"]
+    logging.info(
+        "[CHAT] User=%s | Session=%s | Msg='%s'",
+        user_id,
+        session_id,
+        body.content,
+    )
 
     conn = get_db_conn()
     cur = conn.cursor()
@@ -46,7 +52,7 @@ def chat_with_ai(session_id: str, body: ChatMessage, current_user = Depends(get_
 
     if session[0] != current_user["id"]:
         logging.warning(
-            f"[AUTH] User {current_user["id"]} attempted access to session owned by {session[0]}"
+            f"[AUTH] User {current_user['id']} attempted access to session owned by {session[0]}"
         )
         raise HTTPException(status_code=403, detail="Not your session")
 

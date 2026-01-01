@@ -1,0 +1,32 @@
+# Ignore everything by default
+**
+
+# Allow only what backend needs
+!Dockerfile
+!requirements.txt
+!main.py
+!src/
+!scripts/
+
+# Python junk
+__pycache__/
+*.pyc
+
+# Node / frontend
+frontend/
+node_modules/
+
+# Virtualenv
+venv/
+
+# Git
+.git/
+.gitignore
+
+# Logs & data
+logs/
+data/
+embeddings/
+
+# OS
+.DS_Store

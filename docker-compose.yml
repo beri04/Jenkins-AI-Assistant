@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:15
+    container_name: jenkins_ai_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: saksham123
+      POSTGRES_DB: jenkins_ai_database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  backend:
+    build: .
+    image: jenkins-ai-backend
+    container_name: jenkins_ai_backend
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://postgres:saksham123@db:5432/jenkins_ai_database
+      ENV: production
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

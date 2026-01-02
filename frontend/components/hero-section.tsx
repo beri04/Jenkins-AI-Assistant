@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Terminal, User } from "lucide-react"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { useAuth } from "@/context/useAuth"
 

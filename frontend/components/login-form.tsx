@@ -1,4 +1,6 @@
 "use client"
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react/no-unescaped-entities */
 
 import type React from "react"
 

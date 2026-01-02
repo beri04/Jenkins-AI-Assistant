@@ -36,7 +36,7 @@ export function SignupForm() {
         }
 
         alert("Signup successful. Please login.")
-      } catch (err) {
+      } catch {
         alert("Signup failed. User may already exist.")
       } finally {
         setIsLoading(false)

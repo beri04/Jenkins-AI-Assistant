@@ -1,10 +1,11 @@
 "use client"
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react/no-unescaped-entities */
 import { PageTransition } from "@/components/page-transition"
 import { Button } from "@/components/ui/button"
 import { User, Mail, Calendar, LogOut } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/useAuth"
 

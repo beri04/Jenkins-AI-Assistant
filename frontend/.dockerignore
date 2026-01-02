@@ -1,0 +1,16 @@
+# Ignore node junk
+node_modules/
+.next/
+dist/
+build/
+
+# Env files
+.env
+.env.*
+
+# Git
+.git
+.gitignore
+
+# OS
+.DS_Store

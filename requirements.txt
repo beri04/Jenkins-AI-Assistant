@@ -8,6 +8,8 @@ typing-extensions==4.11.0
 # Security
 python-jose[cryptography]
 passlib[bcrypt]
+argon2-cffi
+
 
 # AI / RAG
 torch==2.2.2

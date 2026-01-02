@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 export default function ChatPage() {
   const router = useRouter()
   const [ready, setReady] = useState(false)
-  const [mode, setMode] = useState("professional")
+  const [, setMode] = useState("professional")
 
   useEffect(() => {
     const token = localStorage.getItem("token")

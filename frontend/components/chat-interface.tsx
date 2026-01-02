@@ -1,5 +1,6 @@
 "use client"
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type React from "react"
 import { Home } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
@@ -202,7 +203,7 @@ export function ChatInterface() {
       }
 
       setMessages((prev) => [...prev, assistantMessage])
-    } catch (err) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
@@ -323,6 +324,7 @@ export function ChatInterface() {
               <option value="friendly">Friendly</option>
               <option value="teaching">Teaching</option>
               <option value="rude">Rude DevOps</option>
+              <option value="hinglish">Hinglish</option>
             </select>
           </div>
         </div>

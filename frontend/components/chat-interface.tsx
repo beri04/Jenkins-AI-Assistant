@@ -52,7 +52,7 @@ export function ChatInterface() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const createNewSession = async () => {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("access_token")
     if (!token) return
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ai/sessions`, {
@@ -66,6 +66,15 @@ export function ChatInterface() {
 
     const data = await res.json()
 
+    setSessions(prev => [
+      {
+        session_id: data.session_id,
+        mode: data.mode,
+        created_at: new Date().toISOString(),
+      },
+      ...prev,
+    ])
+
     setActiveSessionId(data.session_id)
     setMode(data.mode)
     setMessages([])
@@ -78,7 +87,7 @@ export function ChatInterface() {
   
   useEffect(() => {
   const fetchSessions = async () => {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("access_token")
     if (!token) return
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ai/sessions`, {
@@ -104,7 +113,7 @@ export function ChatInterface() {
 }, [loading, user])
 
   const loadSession = async (sessionId: string) => {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("access_token")
     if (!token) return
 
     setActiveSessionId(sessionId)
@@ -131,7 +140,7 @@ export function ChatInterface() {
     )
   }
   const deleteSession = async (sessionId: string) => {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("access_token")
     if (!token) return
 
     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ai/sessions/${sessionId}`, {
@@ -171,7 +180,7 @@ export function ChatInterface() {
         throw new Error("No active session")
       }
 
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("access_token")
       if (!token) {
         throw new Error("Missing token")
       }
@@ -303,7 +312,7 @@ export function ChatInterface() {
                 const newMode = e.target.value
                 setMode(newMode)
 
-                const token = localStorage.getItem("token")
+                const token = localStorage.getItem("access_token")
                 if (!activeSessionId || !token) return
 
                 await fetch(
@@ -434,7 +443,7 @@ export function ChatInterface() {
                   
                   
                   // 🔹 2. Upload to backend (EXISTING LOGIC)
-                  const token = localStorage.getItem("token")
+                  const token = localStorage.getItem("access_token")
                   if (!token) return
 
                   const formData = new FormData()

@@ -14,8 +14,9 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements and build wheels
 COPY requirements.txt .
 RUN pip install --upgrade pip \
-    && pip wheel --no-cache-dir --no-deps -r requirements.txt -w /wheels
-
+    && pip wheel --no-cache-dir --no-deps \
+       --extra-index-url https://download.pytorch.org/whl/cpu \
+       -r requirements.txt -w /wheels
 
 # =========================
 # Stage 2: Runtime
@@ -33,8 +34,9 @@ RUN apt-get update && apt-get install -y \
 COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/*
 
-# Copy app source
-COPY . .
+# Copy application code ONLY
+COPY src /app/src
+COPY data /app/data
 
 # Expose port
 EXPOSE 8000

@@ -1,11 +1,15 @@
 from dotenv import load_dotenv
 from groq import Groq
+import httpx
 import os
 load_dotenv()
 
 class GroqClient:
     def __init__(self):
         self.api_key = os.getenv('GROQ_API_KEY')
+        http_client = httpx.Client(
+            timeout=httpx.Timeout(30.0)  # ⬅ increase timeout here
+        )
         self.client = Groq(api_key=self.api_key)
 
 
@@ -22,5 +26,8 @@ class GroqClient:
             )
             return response.choices[0].message.content
         except Exception as e:
-            print(f"\n [ERROR] LLM error: {e}")
-            return "Error: Failed to generate response from Groq."
+            print(f"\n[ERROR] LLM error: {e}")
+            return (
+                "The request took longer than expected. "
+                "Please try again or shorten the input."
+            )

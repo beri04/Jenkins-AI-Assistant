@@ -8,7 +8,7 @@ CLEANED_DOCS_DIR = BASE_DIR / "data" / "cleaned_docs"
 
 JENKINS_PIPELINES_DOCS = BASE_DIR / "data" / "jenkins_pipeline_docs"
 
-CHUNK_FILE = BASE_DIR / "embeddings" / "chunks.json"
+CHUNK_FILE = BASE_DIR / "data" / "chunks.json"
 
 FAISS_INDEX = BASE_DIR / "embeddings" / "faiss_index.bin"
 

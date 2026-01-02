@@ -25,8 +25,16 @@ venv/
 
 # Logs & data
 logs/
-data/
-embeddings/
+
+# Allow data explicitly
+!data/
+!data/**
 
 # OS
 .DS_Store
+
+# ML caches (MUST IGNORE)
+.cache/
+**/.cache/
+**/huggingface/
+**/torch/

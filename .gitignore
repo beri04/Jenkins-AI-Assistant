@@ -1,5 +1,55 @@
-venv/
+# =========================
+# Secrets / credentials
+# =========================
 .env
+.env.*
+*.pem
+*.key
+
+# =========================
+# Python
+# =========================
+venv/
 __pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# =========================
+# Node / Next.js
+# =========================
 node_modules/
-*.log
+frontend/node_modules/
+.next/
+frontend/.next/
+out/
+dist/
+npm-debug.log*
+yarn-error.log*
+
+# =========================
+# Logs
+# =========================
+logs/*.log
+logs/*.txt
+
+# =========================
+# RAG generated artifacts
+# =========================
+embeddings/faiss_index.bin
+embeddings/chunk_ids.json
+
+# =========================
+# OS / IDE junk
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =========================
+# Temporary / editor files
+# =========================
+*.swp
+*.tmp

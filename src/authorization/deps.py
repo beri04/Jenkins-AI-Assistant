@@ -1,52 +1,35 @@
-from fastapi import HTTPException, Request, Header, Depends
+from fastapi import HTTPException, Request, Header
 from jose import jwt, JWTError
 import logging
 from src.database.get_db import get_db_conn
 from src.database.db_logging import execute_query
 from src.database.access_tokens import SECRET_KEY, ALGORITHM
 
-def get_current_user(request: Request,Authorization: str = Header(None)):
-    """
-    Accepts:
-    - Raw JWT token
-    - OR 'Bearer <token>' (optional)
-    - OR no token (dev fallback)
-    """
+def get_current_user(
+    request: Request,
+    Authorization: str = Header(None)
+):
+    if not Authorization:
+        raise HTTPException(status_code=401, detail="Authorization header missing")
 
-    # -------------------------
-    # TOKEN HANDLING
-    # -------------------------
-    if Authorization:
-        token = Authorization.strip()
+    token = Authorization.strip()
+    if token.lower().startswith("bearer "):
+        token = token[7:].strip()
 
-        # If someone still sends "Bearer xyz", strip it
-        if token.lower().startswith("bearer "):
-            token = token[7:].strip()
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
 
-        try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            user_id = payload.get("user_id")
-            print("DECODED PAYLOAD:", payload)
-            if not user_id:
-                raise HTTPException(status_code=401, detail="Invalid token")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
-        except JWTError as e:
-            logging.error(f"[AUTH ERROR] {e}")
-            raise HTTPException(status_code=401, detail="Invalid or expired token")
+    except JWTError as e:
+        logging.error(f"[AUTH ERROR] {e}")
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-    else:
-        raise HTTPException(
-            status_code=401,
-            detail="Authorization header missing"
-        )
-
-    # -------------------------
-    # FETCH USER FROM DB
-    # -------------------------
     conn = get_db_conn()
     try:
         cur = conn.cursor()
-
         execute_query(
             cur,
             "SELECT id, email, username FROM users WHERE id = %s",
@@ -64,5 +47,5 @@ def get_current_user(request: Request,Authorization: str = Header(None)):
     return {
         "id": user[0],
         "email": user[1],
-        "username":user[2]
+        "username": user[2],
     }

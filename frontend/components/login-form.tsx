@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/useAuth"
+import { data } from "framer-motion/client"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -24,32 +25,38 @@ export function LoginForm() {
     setIsLoading(true)
 
     try {
-      // 1. LOGIN
-      const loginRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      })
+      const loginRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      )
 
       if (!loginRes.ok) {
         throw new Error("Login failed")
       }
 
-      const loginData = await loginRes.json()
+      // 🔴 THIS LINE WAS MISSING
+      const data = await loginRes.json()
 
-      // assume backend returns { access_token: "..." }
-      await login(loginData.access_token)
+      // 🔴 NOW THIS MAKES SENSE
+      await login(data.access_token)
+
       router.push("/")
+
     } catch (err) {
       alert("Login failed. Check credentials or backend.")
     } finally {
       setIsLoading(false)
     }
+
   }
 
   return (

@@ -1,9 +1,9 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# 👇 accept build-time variable
+# build-time env (for Next.js)
 ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 COPY package*.json ./
 RUN npm install
@@ -16,8 +16,9 @@ FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
-# 👇 runtime env (optional but safe)
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# 👇 re-declare ARG in this stage
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules

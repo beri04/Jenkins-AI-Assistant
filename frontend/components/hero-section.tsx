@@ -154,14 +154,14 @@ export function HeroSection() {
           </div>
 
           <h1 className="text-5xl md:text-6xl lg:text-[4.5rem] font-bold tracking-tight mb-7 text-balance leading-[1.08]">
-            Parse and Understand <span className="text-primary">Jenkinsfiles</span>
-            <span className="block mt-1">Without Context Switching</span>
+            Understand <span className="text-primary">Jenkinsfiles</span>
+            <span className="block mt-1">Your Way</span>
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-11 leading-relaxed">
-            AI-powered assistant that uses{" "}
-            <span className="text-foreground font-medium">retrieval-augmented generation</span> to analyze your CI/CD
-            pipelines, explain Groovy syntax, and search Jenkins documentation instantly.
+            Explain pipelines in{" "}
+            <span className="text-foreground font-medium">Teaching, Professional, Hinglish or DevOps-style</span> to analyze your CI/CD
+            — powered by real Jenkins documentation.
           </p>
 
           {/* CTA - single focused action */}

@@ -1,5 +1,6 @@
 # main_db.py
-
+import os
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from src.api.auth_router import router as auth_router
 from src.api.router import router as ai_router  # your AI endpoints
@@ -10,7 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 import time 
 from src.logging import logger
-
+load_dotenv()
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
 app = FastAPI(
     title="Jenkins AI Assistant",
     description="Backend with JWT authentication + RAG engine",
@@ -18,7 +20,7 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000","http://127.0.0.1:3000"],
+    allow_origins=[FRONTEND_ORIGIN],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

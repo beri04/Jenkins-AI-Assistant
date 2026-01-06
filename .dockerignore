@@ -8,6 +8,14 @@
 !src/
 !scripts/
 
+# 🔥 ALLOW FAISS
+!embeddings/
+!embeddings/**
+
+# Allow data explicitly
+!data/
+!data/**
+
 # Python junk
 __pycache__/
 *.pyc
@@ -25,10 +33,6 @@ venv/
 
 # Logs & data
 logs/
-
-# Allow data explicitly
-!data/
-!data/**
 
 # OS
 .DS_Store

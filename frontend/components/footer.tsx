@@ -87,13 +87,13 @@ export function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">© 2026 Saksham. All rights reserved.</p>
             <div className="flex items-center gap-6">
-              <Link href="#github" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link href="https://github.com/beri04" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 GitHub
               </Link>
-              <Link href="#twitter" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                Twitter
+              <Link href="https://x.com/saksham573" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                X
               </Link>
-              <Link href="#linkedin" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link href="https://www.linkedin.com/in/saksham-beri-32543b301" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 LinkedIn
               </Link>
             </div>

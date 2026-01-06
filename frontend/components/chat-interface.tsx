@@ -78,6 +78,8 @@ export function ChatInterface() {
     setActiveSessionId(data.session_id)
     setMode(data.mode)
     setMessages([])
+
+    return data.session_id
   }
 
   useEffect(() => {
@@ -132,8 +134,8 @@ export function ChatInterface() {
     const data = await res.json()
 
     setMessages(
-      data.map((m: any) => ({
-        id: crypto.randomUUID(),
+      data.map((m: any,idx: number) => ({
+        id: `${sessionId}-${idx}-${Date.now()}`,
         role: m.role,
         content: m.content,
       }))
@@ -170,14 +172,19 @@ export function ChatInterface() {
       content: input.trim(),
     }
 
-    // show user message immediately
     setMessages((prev) => [...prev, userMessage])
     setInput("")
     setIsLoading(true)
 
     try {
-      if (!activeSessionId) {
-        throw new Error("No active session")
+      let sessionId = activeSessionId   // 👈 local variable
+
+      if (!sessionId) {
+        sessionId = await createNewSession()  // 👈 capture return
+      }
+
+      if (!sessionId) {
+        throw new Error("Session creation failed")
       }
 
       const token = localStorage.getItem("access_token")
@@ -186,7 +193,7 @@ export function ChatInterface() {
       }
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/ai/sessions/${activeSessionId}/chat`,
+        `${process.env.NEXT_PUBLIC_API_URL}/ai/sessions/${sessionId}/chat`,
         {
           method: "POST",
           headers: {
@@ -208,17 +215,17 @@ export function ChatInterface() {
       const assistantMessage: Message = {
         id: Date.now().toString(),
         role: "assistant",
-        content: data.content, // MUST match backend response
+        content: data.content,
       }
 
       setMessages((prev) => [...prev, assistantMessage])
-    } catch {
+    } catch (err) {
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now().toString(),
           role: "assistant",
-          content: "Error connecting to backend",
+          content: "Failed to send message. Please try again.",
         },
       ])
     } finally {

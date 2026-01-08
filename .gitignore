@@ -2,7 +2,7 @@
 # Secrets / credentials
 # =========================
 .env
-.env.*
+
 *.pem
 *.key
 

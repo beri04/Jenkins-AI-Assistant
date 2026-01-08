@@ -1,100 +1,125 @@
-# JENKINS - AI Assistant - RAG-Powered Documentation Search System 
+<p align="center">
+  <img src="./image.png" alt="System Architecture" width="85%" />
+</p>
 
-An end-to-end AI System that enables developers to query Jenkins documentation using natural language, backed by a production-ready backend, retrieval-augmented generation (RAG), persistent storage, and cloud deployment.
+# Jenkins AI Assistant — RAG-Powered Documentation Search System
 
-
-## Problem Statement
-
-Jenkins documentation is large, fragmented, and difficult to navigate efficiently during real engineering workflows.  
-Developers often waste time searching across pages, blogs, and outdated examples to find accurate answers.
-
-Traditional keyword search fails to:
-- Understand intent
-- Provide contextual answers
-- Preserve conversation history
+A production-style AI assistant for querying Jenkins documentation using Retrieval-Augmented Generation (RAG), backed by a FastAPI backend, PostgreSQL persistence, and Dockerized deployment on AWS EC2.
 
 ---
 
-## Solution Overview
+## Quick Facts
 
-This project implements a **full-stack AI assistant** that allows users to ask natural-language questions about Jenkins and receive **context-aware answers grounded in official documentation**.
-
-**Key ideas:**
-- Retrieval-Augmented Generation (RAG) to prevent hallucinations
-- Backend-driven architecture (no browser-side AI)
-- Persistent chat sessions with authentication
-- Cloud-ready, containerized deployment
+- **Domain:** AI × DevOps × Backend Systems  
+- **Architecture:** Frontend → FastAPI → RAG → PostgreSQL  
+- **Deployment:** Dockerized services on AWS EC2  
+- **Purpose:** Demonstrate real-world backend, AI, and infrastructure engineering  
 
 ---
 
-## System Architecture
+## 🧠 Problem Statement
 
-![Architecture Diagram](./architecture.png)
+Jenkins documentation is extensive, fragmented, and difficult to navigate during real engineering workflows.  
+Developers often spend significant time searching across documentation pages, blogs, and outdated examples to find reliable answers.
 
-**High-level flow:**
-1. User interacts with the frontend UI
-2. Requests are sent to a FastAPI backend
-3. Jenkins documentation is retrieved via FAISS vector search
-4. Relevant context is injected into the LLM prompt
-5. Responses are generated and stored in PostgreSQL
-6. System is deployed as Dockerized services on AWS EC2
+Traditional keyword-based search systems fail to:
+- Understand user intent  
+- Provide context-aware responses  
+- Maintain conversational continuity  
 
 ---
 
-## Tech Stack
+## ✅ Solution Overview
+
+This project implements a **full-stack AI assistant** that allows users to ask natural-language questions about Jenkins and receive **context-aware answers grounded in official Jenkins documentation**.
+
+**Key design principles:**
+- Retrieval-Augmented Generation (RAG) to reduce hallucinations  
+- Backend-centric architecture (no client-side AI logic)  
+- Persistent, authenticated chat sessions  
+- Containerized, cloud-ready deployment  
+
+---
+
+## 🤖 System Architecture
+
+**High-level request flow:**
+1. User submits a query via the frontend interface  
+2. Request is validated and processed by the FastAPI backend  
+3. Relevant Jenkins documentation chunks are retrieved using FAISS  
+4. Retrieved context is injected into the LLM prompt  
+5. The generated response is stored in PostgreSQL  
+6. All services run as Docker containers on AWS EC2  
+
+---
+
+## 🧰 Tech Stack
 
 ### Frontend
-- Modern web UI (authentication + chat interface)
+- Web-based UI with authentication and chat interface  
 
 ### Backend
-- FastAPI (Python)
-- JWT authentication
-- RESTful API design
+- FastAPI (Python)  
+- JWT-based authentication  
+- RESTful API design  
 
 ### AI / RAG
-- Document ingestion & cleaning
-- Text chunking
-- Embeddings
-- FAISS vector database
-- LLM-based answer generation
+- Jenkins documentation ingestion and cleaning  
+- Text chunking and embeddings  
+- FAISS vector search  
+- LLM-based answer generation  
 
 ### Database
-- PostgreSQL
-- Persistent user sessions and chat history
+- PostgreSQL  
+- Persistent storage for users, sessions, and chat history  
 
 ### DevOps & Infrastructure
-- Docker & Docker Compose
-- Docker Hub (image registry)
-- AWS EC2 (deployment)
+- Docker & Docker Compose  
+- Docker Hub (image registry)  
+- AWS EC2 (deployment environment)  
 
 ---
 
-## Core Features
+## 🚀 Core Features
 
-- Secure user authentication (signup / login)
-- Multi-session chat history
-- Retrieval-Augmented Generation (RAG)
-- Jenkins documentation grounding
-- Persistent storage with PostgreSQL
-- Fully containerized services
-- Cloud deployment on AWS EC2
+- Secure user authentication (signup / login)  
+- Multi-session chat history persistence  
+- Retrieval-Augmented Generation (RAG) pipeline  
+- Jenkins documentation-grounded responses  
+- PostgreSQL-backed data storage  
+- Fully containerized services  
+- Cloud deployment on AWS EC2  
 
-> Only implemented features are listed here. No future claims.
+> Only implemented features are listed. No speculative roadmap.
 
 ---
 
-## Local Setup
+### Run Locally
 
 ### Prerequisites
-- Docker
-- Docker Compose
+- Docker  
+- Docker Compose  
 
 ### Environment Variables
-Create a `.env` file using the example below:
+
+Create a `.env` file using the provided `.env.example`:
 
 ```env
-POSTGRES_USER=your_user
-POSTGRES_PASSWORD=your_password
-POSTGRES_DB=your_db
-JWT_SECRET=your_secret
-LLM_API_KEY=your_api_key
+# AI / LLM
+GROQ_API_KEY=your_groq_api_key_here
+
+# Database
+DATABASE_URL=postgresql://user:password@host:port/dbname
+
+# Backend
+NEXT_PUBLIC_API_URL=http://localhost:8000
+
+# Frontend
+FRONTEND_ORIGIN=http://localhost:3000
+```
+
+### ➡️ RUN LOCALLY
+```
+docker compose build --no-cache
+docker compose up 
+```

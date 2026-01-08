@@ -33,7 +33,7 @@ RUN pip install --no-cache-dir /wheels/*
 
 # 🔴 APPLICATION CODE
 COPY src /app/src
-COPY data /app/data
+COPY runtime_data /app/data
 
 # 🔥 FAISS ARTIFACTS (THIS WAS MISSING)
 COPY embeddings /app/embeddings

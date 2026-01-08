@@ -38,6 +38,8 @@ This project implements a **full-stack AI assistant** that allows users to ask n
 - Backend-centric architecture (no client-side AI logic)  
 - Persistent, authenticated chat sessions  
 - Containerized, cloud-ready deployment  
+- For demonstration purposes, FAISS indexes and embedding artifacts are precomputed and included in the Docker image to allow fast startup without requiring an ingestion step.
+In a production system, these artifacts would be generated dynamically or stored externally.
 
 ---
 

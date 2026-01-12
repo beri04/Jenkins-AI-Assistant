@@ -4,7 +4,11 @@
 
 # Jenkins AI Assistant — RAG-Powered Documentation Search System
 
-A production-style AI assistant for querying Jenkins documentation using Retrieval-Augmented Generation (RAG), backed by a FastAPI backend, PostgreSQL persistence, and Dockerized deployment on AWS EC2.
+> A production-style AI assistant that lets developers query Jenkins documentation using natural language.
+>
+> Built with FastAPI, PostgreSQL, FAISS, and Docker — deployed on AWS EC2.
+>
+> Focused on real backend, infra, and RAG engineering (not demos).
 
 ---
 
